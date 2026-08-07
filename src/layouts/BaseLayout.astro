@@ -1,14 +1,8 @@
 ---
 import { getAbsoluteLocaleUrl } from 'astro:i18n';
 import '../styles/global.css';
-import {
-  DEFAULT_LOCALE,
-  LOCALES,
-  LOCALE_DIR,
-  getRouteKey,
-  isNonLocalizedPath,
-  type Locale,
-} from '../i18n/config';
+import { DEFAULT_LOCALE, LOCALES, LOCALE_DIR, type Locale } from '../config/site';
+import { getRouteKey, isNonLocalizedPath } from '../lib/i18n';
 
 // Сабсеты грузим через Vite (?url): так preload указывает ровно на тот же
 // хэшированный файл, что подставится в @font-face, и base учитывается сам.

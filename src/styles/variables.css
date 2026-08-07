@@ -3,40 +3,77 @@
  * Значения перенесены дословно. Менять без согласования запрещено (бриф §7).
  *
  * Тёмные состояния кнопки помечены в источнике как выведенные — полировка в F1.
+ *
+ * УСТРОЙСТВО КАСКАДА (бриф §2: localStorage → prefers-color-scheme → light).
+ * Значения каждой палитры записаны РОВНО ОДИН РАЗ — в блоке `:root` как
+ * `--light-*` и `--dark-*`. Дальше повторяется только присваивание рабочих имён:
+ *   1. `:root`                       — светлая по умолчанию;
+ *   2. `@media (prefers-color-scheme: dark)` — системная тёмная, работает БЕЗ JS;
+ *   3. `[data-theme]`                — явный выбор пользователя, перебивает систему.
+ * Порядок блоков значим: у `:root` и `[data-theme]` одинаковая специфичность,
+ * поэтому явный выбор обязан идти последним.
+ *
+ * Пункт 2 добавлен полировочным проходом F0 (BUG-0002): без него тёмная тема
+ * существовала только через JS, и при отключённом JS каскад из брифа нарушался.
  */
 
 :root {
-  /* ── Палитра · светлая тема (default) ─────────────────────────── */
-  --bg: #f7f7f9; /* фон, холодный */
-  --surface: #ffffff; /* поверхности, карточки */
-  --text-main: #1e242b; /* основной текст, «графит» */
-  --text-muted: #64748b; /* вторичный текст, плейсхолдеры */
-  --accent-wood: #c25e24; /* акцент «кедр» */
-  --accent-wood-hover: #a04a1a;
-  --border-metal: #cbd5e1; /* линии чертежа, бордеры */
+  /* ── Палитра · светлая ────────────────────────────────────────── */
+  --light-bg: #f7f7f9; /* фон, холодный */
+  --light-surface: #ffffff; /* поверхности, карточки */
+  --light-text-main: #1e242b; /* основной текст, «графит» */
+  --light-text-muted: #64748b; /* вторичный текст, плейсхолдеры */
+  --light-accent-wood: #c25e24; /* акцент «кедр» */
+  --light-accent-wood-hover: #a04a1a;
+  --light-border-metal: #cbd5e1; /* линии чертежа, бордеры */
+
+  /* Кнопка «матовый алюминий» · светлая */
+  --light-btn-bg: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  --light-btn-bg-hover: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  --light-btn-bg-active: #e2e8f0;
+  --light-btn-border: #cbd5e1;
+  --light-btn-border-hover: #94a3b8;
+  --light-btn-text: #1e242b;
+  --light-btn-shadow: inset 0 1px 0 #ffffff, 0 1px 2px rgb(0 0 0 / 0.05);
+  --light-btn-shadow-active: inset 0 2px 4px rgb(0 0 0 / 0.1);
+
+  /* В светлой теме фото не приглушаются. */
+  --light-photo-dim: transparent;
+  --light-photo-filter: none;
+  --light-photo-isolate: none;
+
+  /* ── Палитра · тёмная ─────────────────────────────────────────── */
+  --dark-bg: #121417; /* тёмный анодированный металл */
+  --dark-surface: #1a1d23;
+  --dark-text-main: #e2e8f0; /* светлый пепел */
+  --dark-text-muted: #94a3b8;
+  --dark-accent-wood: #e07a3e; /* светлее для контраста на тёмном */
+  --dark-accent-wood-hover: #f29054;
+  --dark-border-metal: #2d333b; /* «фрезеровка» 1px */
+
+  /* Кнопка «матовый алюминий» · тёмная (выведено, полировка в F1) */
+  --dark-btn-bg: linear-gradient(180deg, #262b33 0%, #1a1d23 100%);
+  --dark-btn-bg-hover: linear-gradient(180deg, #2d333b 0%, #22262d 100%);
+  --dark-btn-bg-active: #1a1d23;
+  --dark-btn-border: #3a414b;
+  --dark-btn-border-hover: #4a525d;
+  --dark-btn-text: #e2e8f0;
+  --dark-btn-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.4);
+  --dark-btn-shadow-active: inset 0 2px 4px rgb(0 0 0 / 0.5);
+
+  /* Фото ниже фолда. Применяются ТОЛЬКО через класс .photo-dim:
+     в hero и сборках filter запрещён (бриф §7, DEC-0005). */
+  --dark-photo-dim: rgb(0 0 0 / 0.2);
+  --dark-photo-filter: grayscale(15%) contrast(90%);
+  --dark-photo-isolate: inset 0 0 0 1px rgb(255 255 255 / 0.1);
 
   /* ── Геометрия ────────────────────────────────────────────────── */
   --radius-base: 2px; /* инженерная фаска, глобально */
-
-  /* ── Кнопка «матовый алюминий» · светлая ──────────────────────── */
-  --btn-bg: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
-  --btn-bg-hover: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
-  --btn-bg-active: #e2e8f0;
-  --btn-border: #cbd5e1;
-  --btn-border-hover: #94a3b8;
-  --btn-text: #1e242b;
-  --btn-shadow: inset 0 1px 0 #ffffff, 0 1px 2px rgb(0 0 0 / 0.05);
-  --btn-shadow-active: inset 0 2px 4px rgb(0 0 0 / 0.1);
 
   /* ── Фокус-кольцо · глобально, обе темы ───────────────────────── */
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
   --focus-ring-color: var(--accent-wood);
-
-  /* ── Фото в тёмной теме (значения активны только в dark) ──────── */
-  --photo-dim: transparent;
-  --photo-filter: none;
-  --photo-isolate: none;
 
   /* ── Типографика (бриф §7) ────────────────────────────────────── */
   /* имя --font-stack, а не --font-sans: --font-* занято namespace'ом Tailwind v4 */
@@ -46,36 +83,115 @@
   --line-height-heading: 1.1;
   --measure: 65ch; /* максимальная ширина текстового блока */
   --tracking-brand: 0.05em; /* лого и тег материала */
+
+  /* ── Ступень 1: светлая по умолчанию ──────────────────────────── */
+  --bg: var(--light-bg);
+  --surface: var(--light-surface);
+  --text-main: var(--light-text-main);
+  --text-muted: var(--light-text-muted);
+  --accent-wood: var(--light-accent-wood);
+  --accent-wood-hover: var(--light-accent-wood-hover);
+  --border-metal: var(--light-border-metal);
+  --btn-bg: var(--light-btn-bg);
+  --btn-bg-hover: var(--light-btn-bg-hover);
+  --btn-bg-active: var(--light-btn-bg-active);
+  --btn-border: var(--light-btn-border);
+  --btn-border-hover: var(--light-btn-border-hover);
+  --btn-text: var(--light-btn-text);
+  --btn-shadow: var(--light-btn-shadow);
+  --btn-shadow-active: var(--light-btn-shadow-active);
+  --photo-dim: var(--light-photo-dim);
+  --photo-filter: var(--light-photo-filter);
+  --photo-isolate: var(--light-photo-isolate);
 }
 
-/* Иврит крупнее — бриф §7. Значение зависит от языка документа, не от темы. */
+/* Иврит крупнее — бриф §7. Зависит от языка документа, не от темы. */
 :root:lang(he) {
   --font-size-base: 18px;
 }
 
+/* ── Ступень 2: системная настройка. Работает без JS. ───────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: var(--dark-bg);
+    --surface: var(--dark-surface);
+    --text-main: var(--dark-text-main);
+    --text-muted: var(--dark-text-muted);
+    --accent-wood: var(--dark-accent-wood);
+    --accent-wood-hover: var(--dark-accent-wood-hover);
+    --border-metal: var(--dark-border-metal);
+    --btn-bg: var(--dark-btn-bg);
+    --btn-bg-hover: var(--dark-btn-bg-hover);
+    --btn-bg-active: var(--dark-btn-bg-active);
+    --btn-border: var(--dark-btn-border);
+    --btn-border-hover: var(--dark-btn-border-hover);
+    --btn-text: var(--dark-btn-text);
+    --btn-shadow: var(--dark-btn-shadow);
+    --btn-shadow-active: var(--dark-btn-shadow-active);
+    --photo-dim: var(--dark-photo-dim);
+    --photo-filter: var(--dark-photo-filter);
+    --photo-isolate: var(--dark-photo-isolate);
+  }
+}
+
+/* ── Ступень 3: явный выбор пользователя. Обязан идти последним. ── */
+[data-theme='light'] {
+  --bg: var(--light-bg);
+  --surface: var(--light-surface);
+  --text-main: var(--light-text-main);
+  --text-muted: var(--light-text-muted);
+  --accent-wood: var(--light-accent-wood);
+  --accent-wood-hover: var(--light-accent-wood-hover);
+  --border-metal: var(--light-border-metal);
+  --btn-bg: var(--light-btn-bg);
+  --btn-bg-hover: var(--light-btn-bg-hover);
+  --btn-bg-active: var(--light-btn-bg-active);
+  --btn-border: var(--light-btn-border);
+  --btn-border-hover: var(--light-btn-border-hover);
+  --btn-text: var(--light-btn-text);
+  --btn-shadow: var(--light-btn-shadow);
+  --btn-shadow-active: var(--light-btn-shadow-active);
+  --photo-dim: var(--light-photo-dim);
+  --photo-filter: var(--light-photo-filter);
+  --photo-isolate: var(--light-photo-isolate);
+}
+
 [data-theme='dark'] {
-  /* ── Палитра · тёмная тема ────────────────────────────────────── */
-  --bg: #121417; /* тёмный анодированный металл */
-  --surface: #1a1d23;
-  --text-main: #e2e8f0; /* светлый пепел */
-  --text-muted: #94a3b8;
-  --accent-wood: #e07a3e; /* светлее для контраста на тёмном */
-  --accent-wood-hover: #f29054;
-  --border-metal: #2d333b; /* «фрезеровка» 1px */
+  --bg: var(--dark-bg);
+  --surface: var(--dark-surface);
+  --text-main: var(--dark-text-main);
+  --text-muted: var(--dark-text-muted);
+  --accent-wood: var(--dark-accent-wood);
+  --accent-wood-hover: var(--dark-accent-wood-hover);
+  --border-metal: var(--dark-border-metal);
+  --btn-bg: var(--dark-btn-bg);
+  --btn-bg-hover: var(--dark-btn-bg-hover);
+  --btn-bg-active: var(--dark-btn-bg-active);
+  --btn-border: var(--dark-btn-border);
+  --btn-border-hover: var(--dark-btn-border-hover);
+  --btn-text: var(--dark-btn-text);
+  --btn-shadow: var(--dark-btn-shadow);
+  --btn-shadow-active: var(--dark-btn-shadow-active);
+  --photo-dim: var(--dark-photo-dim);
+  --photo-filter: var(--dark-photo-filter);
+  --photo-isolate: var(--dark-photo-isolate);
+}
 
-  /* ── Кнопка «матовый алюминий» · тёмная (выведено, полировка F1) ─ */
-  --btn-bg: linear-gradient(180deg, #262b33 0%, #1a1d23 100%);
-  --btn-bg-hover: linear-gradient(180deg, #2d333b 0%, #22262d 100%);
-  --btn-bg-active: #1a1d23;
-  --btn-border: #3a414b;
-  --btn-border-hover: #4a525d;
-  --btn-text: #e2e8f0;
-  --btn-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.4);
-  --btn-shadow-active: inset 0 2px 4px rgb(0 0 0 / 0.5);
+/* Тёмная тема должна быть известна браузеру: скроллбары, поля форм. */
+:root {
+  color-scheme: light;
+}
 
-  /* ── Фото ниже фолда. Применяются ТОЛЬКО через класс .photo-dim: ─
-     в hero и сборках filter запрещён (бриф §7, DESIGN_TOKENS.md).  */
-  --photo-dim: rgb(0 0 0 / 0.2);
-  --photo-filter: grayscale(15%) contrast(90%);
-  --photo-isolate: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
 }

@@ -1,48 +1,62 @@
 ---
 /**
- * Техническая страница фазы F0. Существует ради проверок гейта:
- * направление документа, зеркалирование логических свойств, каскад темы,
- * загрузка нужного сабсета шрифта. Удаляется в F3, когда придёт главная.
+ * Техническая страница фазы F0.
+ *
+ * Что делает: показывает то, что нужно проверить в гейте F0 — направление документа,
+ * зеркалирование логических свойств, каскад темы, рендер трёх письменностей.
+ * Вход: локаль и строки через props. Выход: разметка.
+ * Кто использует: `src/pages/index.astro`, `ru/index.astro`, `en/index.astro`.
+ *
+ * Строки приходят props'ами, а не импортом словаря: компонент не знает, откуда
+ * берутся данные (ARCHITECTURE_PRINCIPLES §2). Удаляется в F3 вместе с неймспейсом
+ * `scaffold`.
  */
 import ThemeToggle from './ThemeToggle.astro';
-import { LOCALES, LOCALE_DIR, LOCALE_LABEL, type Locale } from '../i18n/config';
-import { UI } from '../i18n/ui';
+import { LOCALES, LOCALE_DIR, LOCALE_LABEL, type Locale } from '../config/site';
+import type { Dictionary } from '../data/dictionary';
 import { getRelativeLocaleUrl } from 'astro:i18n';
 
 interface Props {
   locale: Locale;
+  scaffold: Dictionary['scaffold'];
+  theme: Dictionary['theme'];
 }
 
-const { locale } = Astro.props;
-const t = UI[locale];
+const { locale, scaffold, theme } = Astro.props;
 ---
 
 <main class="measure scaffold">
   <header class="scaffold__head">
     <p class="brand">RABOTA DOM</p>
-    <ThemeToggle labelLight={t.themeLight} labelDark={t.themeDark} />
+    <ThemeToggle labelLight={theme.toLight} labelDark={theme.toDark} />
   </header>
 
-  <h1>{t.scaffoldHeading}</h1>
+  <h1>{scaffold.heading}</h1>
 
   <dl class="facts">
-    <dt>{t.dirLabel}</dt>
+    <dt>{scaffold.dirLabel}</dt>
     <dd data-ltr>{LOCALE_DIR[locale]}</dd>
-    <dt>{t.fontLabel}</dt>
+    <dt>{scaffold.fontLabel}</dt>
     <dd data-ltr>Rubik Variable</dd>
   </dl>
 
   {/* Логические свойства: полоса обязана зеркалиться в RTL без правок CSS. */}
-  <section aria-label={t.mirrorLabel} class="mirror">
-    <span class="mirror__cell mirror__cell--start">{t.start}</span>
+  <section aria-label={scaffold.mirrorLabel} class="mirror">
+    <span class="mirror__cell mirror__cell--start">{scaffold.start}</span>
     <span class="mirror__cell">2</span>
-    <span class="mirror__cell mirror__cell--end">{t.end}</span>
+    <span class="mirror__cell mirror__cell--end">{scaffold.end}</span>
   </section>
 
-  <nav class="langs">
+  <nav class="langs" aria-label={scaffold.langNavLabel}>
     {
       LOCALES.map((code) => (
-        <a href={getRelativeLocaleUrl(code, '/')} hreflang={code} lang={code}>
+        <a
+          href={getRelativeLocaleUrl(code, '/')}
+          hreflang={code}
+          lang={code}
+          dir={LOCALE_DIR[code]}
+          aria-current={code === locale ? 'page' : undefined}
+        >
           {LOCALE_LABEL[code]}
         </a>
       ))
@@ -74,6 +88,8 @@ const t = UI[locale];
     text-transform: uppercase;
     letter-spacing: var(--tracking-brand);
     margin: 0;
+    /* Лого не переносится на узком экране — находка полировочного прохода F0. */
+    white-space: nowrap;
   }
 
   h1 {
@@ -101,6 +117,7 @@ const t = UI[locale];
 
   .mirror {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
   }
 
@@ -124,6 +141,7 @@ const t = UI[locale];
 
   .langs {
     display: flex;
+    flex-wrap: wrap;
     gap: 1rem;
     font-size: 0.9375rem;
   }
@@ -131,5 +149,10 @@ const t = UI[locale];
   .langs a {
     color: var(--accent-wood);
     text-underline-offset: 0.2em;
+  }
+
+  .langs a[aria-current='page'] {
+    color: var(--text-muted);
+    text-decoration: none;
   }
 </style>

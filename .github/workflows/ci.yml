@@ -32,11 +32,17 @@ jobs:
 
       - run: npm ci
 
-      - name: Конвенции (dvh, логические свойства)
+      - name: Конвенции и границы слоёв
         run: npm run check:conventions
+
+      - name: Метки-костыли
+        run: npm run check:markers
 
       - name: Бюджеты ассетов
         run: npm run check:budgets
+
+      - name: Самотест проверок
+        run: npm run check:selftest
 
       - name: Типы
         run: npm run check:types

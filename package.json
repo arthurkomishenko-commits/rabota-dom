@@ -7,15 +7,18 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "npm run check:conventions && npm run check:budgets && astro build",
+    "build": "npm run check:conventions && npm run check:markers && npm run check:budgets && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "fonts:sync": "node scripts/sync-fonts.mjs",
     "check:conventions": "node scripts/check-conventions.mjs",
     "check:types": "astro check",
-    "check": "npm run check:conventions && npm run check:budgets && npm run check:types",
+    "check": "npm run check:conventions && npm run check:markers && npm run check:budgets && npm run check:selftest && npm run check:types",
     "check:budgets": "node scripts/check-budgets.mjs",
-    "gate:f0": "node scripts/gate-f0.mjs"
+    "gate:f0": "node scripts/gate-f0.mjs",
+    "check:markers": "node scripts/check-markers.mjs",
+    "check:selftest": "node scripts/selftest-checks.mjs",
+    "polish": "npm run build && node scripts/polish-pass.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

@@ -1,12 +1,13 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import FoundationCheck from '../../components/FoundationCheck.astro';
-import { UI } from '../../i18n/ui';
+import { getDictionary } from '../../data/dictionary';
 
 const locale = 'ru' as const;
+const t = getDictionary(locale);
 ---
 
 {/* noindex снимается в F8 вместе с Content Freeze — до запуска сайт staging. */}
-<BaseLayout locale={locale} title={UI[locale].scaffoldTitle} noindex>
-  <FoundationCheck locale={locale} />
+<BaseLayout locale={locale} title={t.scaffold.title} noindex>
+  <FoundationCheck locale={locale} scaffold={t.scaffold} theme={t.theme} />
 </BaseLayout>
