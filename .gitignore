@@ -32,6 +32,10 @@ pnpm-debug.log*
 # generated media (pre-build sharp output)
 public/_generated/
 
+# чужие референсные изображения: смотрим локально, в публичный репозиторий
+# не кладём — авторские права и чужие вотермарки (см. SESSION_SUMMARY)
+docs/evidence/**/reference/
+
 # editor / OS
 .DS_Store
 .DS_Store?

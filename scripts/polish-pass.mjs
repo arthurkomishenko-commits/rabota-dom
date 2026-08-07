@@ -1,7 +1,7 @@
 /**
  * Полировочный проход — чек-лист edge-cases из QUALITY_DOCTRINE §4.
  *
- * Что делает: раздаёт собранный `dist/` собственным статическим сервером и прогоняет по
+ * Что делает: раздаёт собранный `dist/` (см. lib/serve-dist.mjs) и прогоняет по
  * страницам проверки, которые обычная сборка не ловит: отключённый JS,
  * клавиатурная навигация, узкий вьюпорт, очень длинные строки, reduced-motion,
  * иврит и RTL.
@@ -10,59 +10,7 @@
  * Проверяется собранный dist, а не живой сайт: полировка идёт ДО деплоя.
  */
 import { chromium } from 'playwright';
-import { createServer } from 'node:http';
-import { createReadStream, existsSync, statSync } from 'node:fs';
-import { dirname, extname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const DIST = join(ROOT, 'dist');
-const BASE = '/rabota-dom/';
-let ORIGIN = '';
-const url = (path = '') => `${ORIGIN}${BASE}${path}`;
-
-/**
- * Свой статический сервер вместо `astro preview`.
- * В Astro 7 preview — фоновый демон: он переживает процесс, игнорирует повторный
- * `--port` и делает прогон недетерминированным. Раздать собранный `dist/`
- * тридцатью строками надёжнее, чем подстраиваться под жизненный цикл демона.
- */
-const MIME = {
-  '.html': 'text/html; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.woff2': 'font/woff2',
-  '.svg': 'image/svg+xml',
-  '.ico': 'image/x-icon',
-  '.json': 'application/json; charset=utf-8',
-  '.png': 'image/png',
-};
-
-function startStaticServer() {
-  const server = createServer((req, res) => {
-    const pathname = decodeURIComponent(new URL(req.url ?? '/', 'http://x').pathname);
-    const relative = pathname.startsWith(BASE) ? pathname.slice(BASE.length) : pathname.slice(1);
-    let file = join(DIST, relative);
-
-    if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html');
-    if (!existsSync(file)) {
-      res.writeHead(404, { 'content-type': 'text/plain' });
-      res.end('not found');
-      return;
-    }
-
-    res.writeHead(200, { 'content-type': MIME[extname(file)] ?? 'application/octet-stream' });
-    createReadStream(file).pipe(res);
-  });
-
-  return new Promise((resolve) => {
-    server.listen(0, '127.0.0.1', () => {
-      const address = server.address();
-      ORIGIN = `http://127.0.0.1:${typeof address === 'object' && address ? address.port : 0}`;
-      resolve(server);
-    });
-  });
-}
+import { serveDist } from './lib/serve-dist.mjs';
 
 const results = [];
 const say = (ok, text, detail = '') => {
@@ -70,7 +18,7 @@ const say = (ok, text, detail = '') => {
   console.log(`${ok ? '✓' : '✗'} ${text}${detail ? `  — ${detail}` : ''}`);
 };
 
-const server = await startStaticServer();
+const { server, url } = await serveDist();
 const browser = await chromium.launch();
 
 try {

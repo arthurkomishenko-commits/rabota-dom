@@ -64,6 +64,9 @@ const ALLOWED_IMPORTS = {
   components: ['config', 'lib', 'components', 'styles'],
   layouts: ['config', 'lib', 'components', 'layouts', 'styles'],
   pages: ['config', 'lib', 'data', 'components', 'layouts', 'pages', 'styles'],
+  // Витрина собирает компоненты так же, как страницы, но живёт отдельно:
+  // в production её маршрута нет (DEC-0011).
+  showcase: ['config', 'lib', 'data', 'components', 'layouts', 'showcase', 'styles'],
   styles: ['styles'],
 };
 

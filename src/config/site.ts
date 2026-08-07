@@ -47,5 +47,9 @@ export const LOCALE_LABEL: Record<Locale, string> = {
   en: 'English',
 };
 
-/** Пути (без base), которые не входят в языковую матрицу — бриф §2, §9. */
-export const NON_LOCALIZED_PREFIXES = ['/admin'] as const;
+/**
+ * Пути (без base), которые не входят в языковую матрицу — бриф §2, §9.
+ * `/__ui` — витрина компонентов; в production-сборке её маршрута не существует
+ * вовсе (DEC-0011), запись здесь страхует локальные и showcase-сборки.
+ */
+export const NON_LOCALIZED_PREFIXES = ['/admin', '/__ui'] as const;

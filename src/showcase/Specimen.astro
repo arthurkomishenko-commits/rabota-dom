@@ -1,0 +1,83 @@
+---
+/**
+ * Образец для витрины: показывает один и тот же слот в обоих направлениях.
+ *
+ * Что делает: оборачивает демонстрацию компонента в две колонки — LTR и RTL —
+ * чтобы зеркалирование проверялось взглядом и скриншотом за один проход,
+ * а не двумя прогонами на разных локалях.
+ * Вход: `title`, опциональное `note`, содержимое слота. Выход: разметка.
+ * Кто использует: `src/showcase/index.astro`.
+ *
+ * Живёт только в витрине: в production-сборке этого маршрута нет (DEC-0011).
+ */
+interface Props {
+  title: string;
+  note?: string;
+}
+
+const { title, note } = Astro.props;
+---
+
+<section class="specimen">
+  <h2 class="specimen__title">{title}</h2>
+  {note && <p class="specimen__note">{note}</p>}
+
+  <div class="specimen__grid">
+    <div class="specimen__pane" dir="ltr">
+      <span class="specimen__label">LTR</span>
+      <slot />
+    </div>
+    <div class="specimen__pane" dir="rtl">
+      <span class="specimen__label">RTL</span>
+      <slot />
+    </div>
+  </div>
+</section>
+
+<style>
+  .specimen {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .specimen__title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  .specimen__note {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    max-inline-size: var(--measure);
+  }
+
+  .specimen__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .specimen__pane {
+    position: relative;
+    border: 1px solid var(--border-metal);
+    border-radius: var(--radius-base);
+    background: var(--surface);
+    padding-block: 2rem 1.25rem;
+    padding-inline: 1.25rem;
+  }
+
+  .specimen__label {
+    position: absolute;
+    inset-block-start: 0.375rem;
+    inset-inline-start: 0.625rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    /* Метка описывает направление панели — сама остаётся латиницей слева направо. */
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+</style>
