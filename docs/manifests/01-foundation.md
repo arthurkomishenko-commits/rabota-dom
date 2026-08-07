@@ -33,3 +33,49 @@
 
 ## Риски
 Неправильная база i18n = переделка всех страниц позже → поэтому фаза закрывается только после проверки view-source всех локалей. FOUC темы → inline-скрипт строго в `<head>` до CSS.
+
+---
+
+## Факты выполнения (заполняется по ходу; протокол §5)
+
+### Шаг 0 — раскладка документов · ✅ 07.08.2026
+Создан `docs/manifests`; `PLAN.md` → `docs/PLAN.md`; `MANIFEST_01_foundation.md` → `docs/manifests/01-foundation.md`; `START_PROMPT.md` удалён.
+Факт — дерево:
+```
+CLAUDE_CODE_PROTOCOL.md · EDITORIAL.md · PROJECT_BRIEF.md
+docs/PLAN.md · docs/manifests/01-foundation.md
+```
+
+### Шаг «Git и репозиторий» · ✅ 07.08.2026
+`git init -b main`, `.gitignore` (45 строк: dist, .astro, node_modules, .env*, .dev.vars, .wrangler, .lighthouseci, OS/IDE), коммит `docs: production package v2.0`, remote + push.
+Факт — `git log --oneline`: `86d4ee8 docs: production package v2.0` (6 файлов, +318).
+Факт — `git remote -v`: `origin https://github.com/arthurkomishenko-commits/rabota-dom.git` (fetch/push).
+Факт — пуш подтверждён на стороне GitHub, не локально: `gh api repos/.../commits/main` → `86d4ee8`; дерево на remote содержит все 6 файлов.
+Авторизация не потребовалась: `gh auth status` → аккаунт `arthurkomishenko-commits`, scopes `repo, workflow`.
+Факт — Pages включены: `gh api .../pages` → `build_type: "workflow"`, `source.branch: main`, `html_url: https://arthurkomishenko-commits.github.io/rabota-dom/`.
+
+### Шаг 1 — каркас Astro + Tailwind · ✅ 07.08.2026
+Скаффолд `npm create astro@latest -- --template minimal --typescript strict` собран в отдельной папке и перенесён в репозиторий (в корне уже был git + документы). `npx astro add tailwind --yes`.
+Версии (факт): Node v24.14.1 · npm 11.11.0 · **astro v7.2.0** · tailwindcss 4.3.3 через `@tailwindcss/vite` 4.3.3.
+`tsconfig.json` наследует `astro/tsconfigs/strict`.
+Факт — `npm run build`:
+```
+[types] Generated 822ms
+[build] output: "static"
+generating static routes
+  ├─ /index.html (+12ms)
+[build] 1 page(s) built in 1.29s
+[build] Complete!
+```
+Ошибок и ворнингов нет.
+Замечание к версии: Astro 7 новее моей базы знаний — i18n-API сверен по типам установленного пакета (`node_modules/astro/dist/types/public/config.d.ts`), а не по памяти: `i18n.locales`, `i18n.defaultLocale`, `i18n.routing.prefixDefaultLocale` присутствуют.
+
+### Шаг 2 — i18n · ⏸ ожидает решения по домену (см. «Открытые вопросы»)
+### Шаг 4 — токены тем · ⛔ заблокирован: значений палитры Gemini нет ни в одном документе пакета
+
+---
+
+## Открытые вопросы к Артуру (блокируют шаги 2–4 и 7)
+1. **Домен и базовый путь.** Pages настроены как project page → `/rabota-dom/`. Бриф §2 требует `/` = иврит без префикса. Нужно решение: домен сейчас или временный `base: '/rabota-dom'`.
+2. **Палитра токенов Gemini** (бриф §7) — значений нет в пакете. Без них шаг 4 не выполняется по-настоящему.
+3. **Git-идентичность:** коммит подписан `arthurhomekomishenko-gif <arthur.home.komishenko@gmail.com>`, GitHub-аккаунт — `arthurkomishenko-commits`. Нужно подтвердить email для атрибуции коммитов.
