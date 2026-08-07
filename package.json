@@ -14,7 +14,8 @@
     "check:conventions": "node scripts/check-conventions.mjs",
     "check:types": "astro check",
     "check": "npm run check:conventions && npm run check:budgets && npm run check:types",
-    "check:budgets": "node scripts/check-budgets.mjs"
+    "check:budgets": "node scripts/check-budgets.mjs",
+    "gate:f0": "node scripts/gate-f0.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@fontsource-variable/rubik": "^5.3.0",
+    "playwright": "^1.62.1",
     "typescript": "^6.0.3"
   }
 }

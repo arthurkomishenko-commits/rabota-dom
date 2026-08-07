@@ -70,12 +70,125 @@ generating static routes
 Ошибок и ворнингов нет.
 Замечание к версии: Astro 7 новее моей базы знаний — i18n-API сверен по типам установленного пакета (`node_modules/astro/dist/types/public/config.d.ts`), а не по памяти: `i18n.locales`, `i18n.defaultLocale`, `i18n.routing.prefixDefaultLocale` присутствуют.
 
-### Шаг 2 — i18n · ⏸ ожидает решения по домену (см. «Открытые вопросы»)
-### Шаг 4 — токены тем · ⛔ заблокирован: значений палитры Gemini нет ни в одном документе пакета
+### Ответы Артура на блокеры · 07.08.2026
+Домен — вариант (б): `base: '/rabota-dom'`, централизованно (DEC-0002).
+Палитра — файл `docs/DESIGN_TOKENS.md`, статус production.
+Git-идентичность — `git config --local` на `arthurkomishenko-commits`, применено:
+коммит `a9587ca` подписан правильным автором (проверено `gh api`).
+
+### Шаг 2 — i18n · ✅ 07.08.2026
+`astro.config.mjs`: `defaultLocale: 'he'`, `locales: ['he','ru','en']`,
+`routing.prefixDefaultLocale: false`, `trailingSlash: 'always'`.
+`site` и `base` заданы там же и нигде не дублируются (DEC-0002); в коде — `Astro.site`
+и `import.meta.env.BASE_URL`, межъязыковые ссылки через `astro:i18n`.
+`src/i18n/config.ts`: языковая матрица, `stripBase`, `getRouteKey`, `isNonLocalizedPath`.
+`/admin` вынесен из матрицы.
+Факт — собранные маршруты: `/index.html`, `/ru/index.html`, `/en/index.html`,
+`/admin/index.html`.
+Факт — живой сайт (curl, HTTP-коды и атрибуты документа):
+```
+/         200  <html lang="he" dir="rtl">   hreflang: есть
+/ru/      200  <html lang="ru" dir="ltr">   hreflang: есть
+/en/      200  <html lang="en" dir="ltr">   hreflang: есть
+/admin/   200  <html lang="en" dir="ltr">   hreflang: НЕТ ← вне языковой матрицы
+```
+
+### Шаг 3 — BaseLayout · ✅ 07.08.2026
+`lang`/`dir` из локали, canonical, hreflang на три локали + `x-default` → ивритская версия
+того же маршрута, `noindex` до Content Freeze (DEC-0006).
+Факт — view-source ивритской страницы:
+```html
+<html lang="he" dir="rtl">
+<link rel="alternate" hreflang="he"        href=".../rabota-dom/">
+<link rel="alternate" hreflang="ru"        href=".../rabota-dom/ru/">
+<link rel="alternate" hreflang="en"        href=".../rabota-dom/en/">
+<link rel="alternate" hreflang="x-default" href=".../rabota-dom/">
+<link rel="canonical"                      href=".../rabota-dom/">
+```
+На `/admin/` тегов `alternate` нет — исключение из матрицы подтверждено.
+
+### Шаг 4 — токены обеих тем и каскад · ✅ 07.08.2026
+`src/styles/variables.css` — значения из `docs/DESIGN_TOKENS.md` дословно, включая
+5 состояний кнопки в обеих темах. Каскад темы — inline-скрипт в `<head>` до CSS:
+localStorage → `prefers-color-scheme` → light. Тумблер пишет выбор в localStorage.
+Одно осознанное отступление — DEC-0005: диммер фото сделан опт-ин классом `photo-dim`,
+а не глобальным `[data-theme="dark"] img`, иначе filter попал бы на hero и сборки,
+что запрещено брифом §7. Значения токенов не менялись.
+Факт — `npm run gate:f0`, машинные проверки на живом сайте:
+```
+✓ he/ru/en · системная light → data-theme="light"
+✓ he/ru/en · системная dark  → data-theme="dark"
+✓ тумблер: система dark → dark, после нажатия → light
+✓ после перезагрузки при системной dark: тема "light", localStorage "light"
+✓ FOUC: тема на первом кадре "dark", после загрузки "dark" — совпадают
+```
+Скрины: `docs/evidence/f0/{he,ru,en}-{light,dark}-{desktop,mobile}.png` (12 шт.)
+и `theme-override-persists.png`.
+
+### Шаг 5 — Rubik, сабсеттинг · ✅ 07.08.2026
+Три сабсета (hebrew, cyrillic, latin), variable, normal — в `src/styles/fonts/`
+(DEC-0003). Preload — только сабсет языка страницы (DEC-0004).
+Факт — бюджеты, `npm run check:budgets`:
+```
+✓ rubik-cyrillic-wght-normal.woff2     14.8 КБ / 40 КБ
+✓ rubik-hebrew-wght-normal.woff2        9.1 КБ / 40 КБ
+✓ rubik-latin-wght-normal.woff2        34.5 КБ / 40 КБ
+```
+Факт — preload в собранном HTML различается по локали:
+`/` → `rubik-hebrew…`, `/ru/` → `rubik-cyrillic…`, `/en/` → `rubik-latin…`.
+Факт — реально скачано браузером: на каждой локали **три** сабсета, а не один.
+Причина установлена и это не ошибка настройки: на странице присутствуют все три
+письменности (переключатель языков подписан на родных языках, лого — латиницей).
+Развилка вынесена в `docs/DECISIONS.md` → «ОТКРЫТО · Переключатель языков».
+
+### Шаг 6 — глобальный CSS · ✅ 07.08.2026
+Логические свойства, утилиты `h-viewport` / `min-h-viewport` на `100dvh`,
+каркас `prefers-reduced-motion` (мгновенный финал), фокус-кольца
+`outline: 2px solid var(--accent-wood); outline-offset: 2px` на всех интерактивах
+через `:where()` (нулевая специфичность).
+Факт — зеркалирование проверено вычисленными стилями, не глазами:
+```
+✓ he · акцентная грань справа (left=1px, right=3px)
+✓ ru · акцентная грань слева  (left=3px, right=1px)
+✓ en · акцентная грань слева  (left=3px, right=1px)
+```
+Факт — `npm run check:conventions`, включая негативный тест:
+```
+чистый прогон:  ✓ конвенции: 100vh не найден, физических left/right нет   (exit=0)
+негативный:     3 нарушения найдены                                        (exit=1)
+```
+
+### Шаг 7 — CI · ✅ 07.08.2026
+`.github/workflows/ci.yml`: конвенции → бюджеты → типы → сборка → артефакт → деплой
+на Pages. Кэш npm, Node 24, `concurrency` с отменой предыдущих прогонов.
+Факт — прогон `31210862393`, conclusion=**success**, оба job зелёные
+(«Сборка и проверки» 22 s, «Деплой на Pages» 9 s), аннотаций нет.
+В первом прогоне были предупреждения о Node 20 в actions — версии подняты
+до актуальных мажоров (checkout v7, setup-node v7, configure-pages v6,
+upload-pages-artifact v5, deploy-pages v5), предупреждения ушли.
+Факт — сайт живой: `https://arthurkomishenko-commits.github.io/rabota-dom/` → 200.
+
+### Шаг 8 — файловая дисциплина · ✅ 07.08.2026
+`CLAUDE.md` (конвенции, таблица команд, definition of done, массив BANNED_PHRASES),
+`docs/TODO.md`, `docs/DECISIONS.md` (DEC-0001…0007 + открытая развилка),
+`docs/BUGS.md`, `docs/SESSION_SUMMARY.md`, `README.md`, `AGENTS.md` (ссылка на CLAUDE.md).
 
 ---
 
-## Открытые вопросы к Артуру (блокируют шаги 2–4 и 7)
-1. **Домен и базовый путь.** Pages настроены как project page → `/rabota-dom/`. Бриф §2 требует `/` = иврит без префикса. Нужно решение: домен сейчас или временный `base: '/rabota-dom'`.
-2. **Палитра токенов Gemini** (бриф §7) — значений нет в пакете. Без них шаг 4 не выполняется по-настоящему.
-3. **Git-идентичность:** коммит подписан `arthurhomekomishenko-gif <arthur.home.komishenko@gmail.com>`, GitHub-аккаунт — `arthurkomishenko-commits`. Нужно подтвердить email для атрибуции коммитов.
+## Проверка критериев приёмки
+
+| Критерий | Статус | Доказательство |
+| --- | --- | --- |
+| `npm run build` без ошибок и ворнингов | ✅ | 4 страницы, лог сборки чист |
+| Action зелёный | ✅ | прогон `31210862393`, success, без аннотаций |
+| Сайт доступен на Pages | ✅ | 4 URL отдают 200 |
+| `/` — иврит RTL, `/ru/` `/en/` — LTR | ✅ | view-source + вычисленные стили |
+| hreflang + x-default корректны | ✅ | view-source трёх локалей приложен |
+| Тема: каскад работает, выбор переживает перезагрузку | ✅ | `gate:f0`, 45/45 |
+| Скрины обеих тем | ✅ | 12 скринов, десктоп + мобайл |
+| Сабсеты ≤40 КБ каждый | ✅ | 9.1 / 14.8 / 34.5 КБ, проверяется в CI |
+| В коде нет `100vh`, нет хардкода left/right | ✅ | `check:conventions`, негативный тест пройден |
+
+**Не закрыто:** проверка на реальном устройстве (протокол §6). Headless Chromium
+не заменяет iOS Safari — там `dvh` и динамический вьюпорт ведут себя иначе.
+Запрос Артуру оформлен в отчёте сессии.

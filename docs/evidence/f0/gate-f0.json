@@ -1,0 +1,185 @@
+{
+  "site": "https://arthurkomishenko-commits.github.io/rabota-dom",
+  "checks": [
+    {
+      "ok": true,
+      "text": "he · системная light → data-theme=\"light\""
+    },
+    {
+      "ok": true,
+      "text": "he · lang=\"he\""
+    },
+    {
+      "ok": true,
+      "text": "he · dir=\"rtl\""
+    },
+    {
+      "ok": true,
+      "text": "he · акцентная грань справа (left=1px, right=3px)"
+    },
+    {
+      "ok": true,
+      "text": "he · шрифт: \"Rubik Variable\""
+    },
+    {
+      "ok": true,
+      "text": "he · скачан сабсет hebrew"
+    },
+    {
+      "ok": true,
+      "text": "he · всего сабсетов скачано: 3 [cyrillic, hebrew, latin]"
+    },
+    {
+      "ok": true,
+      "text": "he · системная dark → data-theme=\"dark\""
+    },
+    {
+      "ok": true,
+      "text": "he · lang=\"he\""
+    },
+    {
+      "ok": true,
+      "text": "he · dir=\"rtl\""
+    },
+    {
+      "ok": true,
+      "text": "he · акцентная грань справа (left=1px, right=3px)"
+    },
+    {
+      "ok": true,
+      "text": "he · шрифт: \"Rubik Variable\""
+    },
+    {
+      "ok": true,
+      "text": "he · скачан сабсет hebrew"
+    },
+    {
+      "ok": true,
+      "text": "he · всего сабсетов скачано: 3 [cyrillic, hebrew, latin]"
+    },
+    {
+      "ok": true,
+      "text": "ru · системная light → data-theme=\"light\""
+    },
+    {
+      "ok": true,
+      "text": "ru · lang=\"ru\""
+    },
+    {
+      "ok": true,
+      "text": "ru · dir=\"ltr\""
+    },
+    {
+      "ok": true,
+      "text": "ru · акцентная грань слева (left=3px, right=1px)"
+    },
+    {
+      "ok": true,
+      "text": "ru · шрифт: \"Rubik Variable\""
+    },
+    {
+      "ok": true,
+      "text": "ru · скачан сабсет cyrillic"
+    },
+    {
+      "ok": true,
+      "text": "ru · всего сабсетов скачано: 3 [cyrillic, hebrew, latin]"
+    },
+    {
+      "ok": true,
+      "text": "ru · системная dark → data-theme=\"dark\""
+    },
+    {
+      "ok": true,
+      "text": "ru · lang=\"ru\""
+    },
+    {
+      "ok": true,
+      "text": "ru · dir=\"ltr\""
+    },
+    {
+      "ok": true,
+      "text": "ru · акцентная грань слева (left=3px, right=1px)"
+    },
+    {
+      "ok": true,
+      "text": "ru · шрифт: \"Rubik Variable\""
+    },
+    {
+      "ok": true,
+      "text": "ru · скачан сабсет cyrillic"
+    },
+    {
+      "ok": true,
+      "text": "ru · всего сабсетов скачано: 3 [cyrillic, hebrew, latin]"
+    },
+    {
+      "ok": true,
+      "text": "en · системная light → data-theme=\"light\""
+    },
+    {
+      "ok": true,
+      "text": "en · lang=\"en\""
+    },
+    {
+      "ok": true,
+      "text": "en · dir=\"ltr\""
+    },
+    {
+      "ok": true,
+      "text": "en · акцентная грань слева (left=3px, right=1px)"
+    },
+    {
+      "ok": true,
+      "text": "en · шрифт: \"Rubik Variable\""
+    },
+    {
+      "ok": true,
+      "text": "en · скачан сабсет latin"
+    },
+    {
+      "ok": true,
+      "text": "en · всего сабсетов скачано: 3 [cyrillic, hebrew, latin]"
+    },
+    {
+      "ok": true,
+      "text": "en · системная dark → data-theme=\"dark\""
+    },
+    {
+      "ok": true,
+      "text": "en · lang=\"en\""
+    },
+    {
+      "ok": true,
+      "text": "en · dir=\"ltr\""
+    },
+    {
+      "ok": true,
+      "text": "en · акцентная грань слева (left=3px, right=1px)"
+    },
+    {
+      "ok": true,
+      "text": "en · шрифт: \"Rubik Variable\""
+    },
+    {
+      "ok": true,
+      "text": "en · скачан сабсет latin"
+    },
+    {
+      "ok": true,
+      "text": "en · всего сабсетов скачано: 3 [cyrillic, hebrew, latin]"
+    },
+    {
+      "ok": true,
+      "text": "тумблер: система dark → dark, после нажатия → light"
+    },
+    {
+      "ok": true,
+      "text": "после перезагрузки при системной dark: тема \"light\", localStorage \"light\" — выбор пережил перезагрузку"
+    },
+    {
+      "ok": true,
+      "text": "FOUC: тема на первом кадре \"dark\", после загрузки \"dark\" — совпадают"
+    }
+  ]
+}
