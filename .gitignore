@@ -1,0 +1,45 @@
+# build output
+dist/
+.astro/
+.output/
+.vercel/
+
+# dependencies
+node_modules/
+.pnpm-store/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+.dev.vars
+
+# caches
+.cache/
+.turbo/
+.eslintcache
+.wrangler/
+.lighthouseci/
+
+# generated media (pre-build sharp output)
+public/_generated/
+
+# editor / OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
