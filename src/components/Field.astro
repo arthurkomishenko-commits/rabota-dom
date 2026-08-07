@@ -1,0 +1,124 @@
+---
+/**
+ * Поле формы с «линией чертежа» по нижней грани.
+ *
+ * Что делает: подпись + инпут + место под ошибку. Нижняя граница толще
+ * остальных и на фокусе становится акцентной — приём из брифа §7.
+ * Вход: props ниже (все тексты — снаружи). Выход: размеченное поле.
+ * Кто использует: формы (F4), витрина `/__ui/`.
+ *
+ * Телефон в ивритской форме обязан набираться слева направо — за это отвечает
+ * `numeric`, а не догадки по языку документа (бриф §2, EDITORIAL §9).
+ */
+interface Props {
+  id: string;
+  label: string;
+  name?: string;
+  type?: 'text' | 'tel' | 'email';
+  placeholder?: string;
+  value?: string;
+  required?: boolean;
+  /** Текст ошибки. Присутствует — поле в состоянии ошибки. */
+  error?: string;
+  /** Числовое содержимое (телефон): всегда LTR, даже внутри RTL-формы. */
+  numeric?: boolean;
+  autocomplete?: string;
+}
+
+const {
+  id,
+  label,
+  name,
+  type = 'text',
+  placeholder,
+  value,
+  required = false,
+  error,
+  numeric = false,
+  autocomplete,
+} = Astro.props;
+
+const errorId = `${id}-error`;
+---
+
+<div class="field" class:list={[{ 'field--error': Boolean(error) }]}>
+  <label class="field__label" for={id}>
+    {label}
+    {required && <span class="field__required" aria-hidden="true">*</span>}
+  </label>
+
+  <input
+    class="field__input"
+    id={id}
+    name={name ?? id}
+    type={type}
+    placeholder={placeholder}
+    value={value}
+    required={required}
+    autocomplete={autocomplete}
+    dir={numeric ? 'ltr' : undefined}
+    aria-invalid={error ? 'true' : undefined}
+    aria-describedby={error ? errorId : undefined}
+  />
+
+  {
+    error && (
+      <p class="field__error" id={errorId}>
+        {error}
+      </p>
+    )
+  }
+</div>
+
+<style>
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    min-inline-size: 0;
+  }
+
+  .field__label {
+    font-size: 0.875rem;
+    color: var(--text-main);
+  }
+
+  .field__required {
+    color: var(--accent-wood);
+    margin-inline-start: 0.125rem;
+  }
+
+  .field__input {
+    font: inherit;
+    font-size: 1rem;
+    color: var(--text-main);
+    background: var(--surface);
+    border: 1px solid var(--border-metal);
+    /* «Линия чертежа»: нижняя грань толще остальных. */
+    border-block-end-width: 2px;
+    border-radius: var(--radius-base);
+    min-block-size: 44px;
+    padding-block: 0.5rem;
+    padding-inline: 0.75rem;
+    inline-size: 100%;
+  }
+
+  .field__input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .field__input:focus {
+    /* Активной становится именно нижняя линия; кольцо даёт глобальное правило. */
+    border-block-end-color: var(--accent-wood);
+  }
+
+  .field--error .field__input {
+    border-color: var(--accent-wood);
+  }
+
+  .field__error {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--accent-wood);
+  }
+</style>

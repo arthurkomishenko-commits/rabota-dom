@@ -1,0 +1,59 @@
+---
+/**
+ * Раздел витрины: кнопка «матовый алюминий» и вторичная текстовая ссылка.
+ * Состояния hover и active скриншотом не поймать, поэтому рядом с живыми
+ * кнопками стоят их принудительные копии с классами-состояниями.
+ * Вход: нет. Выход: раздел. Кто использует: `src/showcase/index.astro`.
+ */
+import Specimen from '../Specimen.astro';
+import Button from '../../components/Button.astro';
+---
+
+<Specimen
+  title="Кнопка «матовый алюминий»"
+  note="Пять состояний из docs/DESIGN_TOKENS.md. normal и disabled — живые; hover, active и focus показаны принудительно, иначе их не снять скриншотом."
+>
+  <div class="row">
+    <Button>Получить оценку</Button>
+    <Button class="is-hover">Наведение</Button>
+    <Button class="is-active">Нажатие</Button>
+    <Button class="is-focus">Фокус</Button>
+    <Button disabled>Отключена</Button>
+  </div>
+
+  <div class="row row--secondary">
+    <Button variant="text" href="#tel">Позвонить</Button>
+    <Button variant="text" disabled>Отключена</Button>
+  </div>
+</Specimen>
+
+<style>
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .row--secondary {
+    margin-block-start: 1rem;
+    padding-block-start: 1rem;
+    border-block-start: 1px solid var(--border-metal);
+  }
+
+  /* Принудительные состояния — только для витрины, ровно те же токены. */
+  .row :global(.is-hover.btn--primary) {
+    background: var(--btn-bg-hover);
+    border-color: var(--btn-border-hover);
+  }
+
+  .row :global(.is-active.btn--primary) {
+    background: var(--btn-bg-active);
+    box-shadow: var(--btn-shadow-active);
+  }
+
+  .row :global(.is-focus) {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+  }
+</style>

@@ -1,0 +1,111 @@
+---
+/**
+ * Кнопка «матовый алюминий» и вторичная текстовая ссылка.
+ *
+ * Что делает: рисует основной CTA (пять состояний из docs/DESIGN_TOKENS.md
+ * дословно) и его вторичный вариант. Иерархия CTA — бриф §3: в hero две кнопки,
+ * телефон рядом с номером остаётся текстовой ссылкой.
+ * Вход: props ниже. Выход: `<a>` при наличии `href`, иначе `<button>`.
+ * Кто использует: страницы, sticky-панель, витрина `/__ui/`.
+ *
+ * Данные только через props: компонент не знает ни о словарях, ни о конфиге.
+ */
+interface Props {
+  /** `primary` — «матовый алюминий»; `text` — вторичная текстовая ссылка. */
+  variant?: 'primary' | 'text';
+  href?: string;
+  type?: 'button' | 'submit';
+  disabled?: boolean;
+  /** Внешняя ссылка (WhatsApp, телефон) — открывается по своим правилам. */
+  rel?: string;
+  target?: string;
+  class?: string;
+}
+
+const {
+  variant = 'primary',
+  href,
+  type = 'button',
+  disabled = false,
+  rel,
+  target,
+  class: className,
+} = Astro.props;
+
+// Отключённая ссылка недоступна с клавиатуры и не имеет смысла как <a>:
+// в этом состоянии элемент всегда кнопка.
+const asLink = Boolean(href) && !disabled;
+const classes = ['btn', `btn--${variant}`, className].filter(Boolean).join(' ');
+---
+
+{
+  asLink ? (
+    <a class={classes} href={href} rel={rel} target={target}>
+      <slot />
+    </a>
+  ) : (
+    <button class={classes} type={type} disabled={disabled}>
+      <slot />
+    </button>
+  )
+}
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font: inherit;
+    font-size: 0.9375rem;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: var(--radius-base);
+    /* Палец на мобильном: минимальная цель 44px (бриф §10, доступность). */
+    min-block-size: 44px;
+    padding-block: 0.625rem;
+    padding-inline: 1.25rem;
+  }
+
+  /* ── primary: «матовый алюминий», значения из DESIGN_TOKENS.md ───────── */
+  .btn--primary {
+    background: var(--btn-bg);
+    border: 1px solid var(--btn-border);
+    color: var(--btn-text);
+    box-shadow: var(--btn-shadow);
+  }
+
+  .btn--primary:hover:not(:disabled) {
+    background: var(--btn-bg-hover);
+    border-color: var(--btn-border-hover);
+  }
+
+  .btn--primary:active:not(:disabled) {
+    background: var(--btn-bg-active);
+    box-shadow: var(--btn-shadow-active);
+  }
+
+  /* ── text: вторичная текстовая ссылка ───────────────────────────────── */
+  .btn--text {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--accent-wood);
+    padding-inline: 0.25rem;
+    text-underline-offset: 0.25em;
+    text-decoration: underline;
+  }
+
+  .btn--text:hover:not(:disabled) {
+    color: var(--accent-wood-hover);
+  }
+
+  /* ── disabled: одинаково для обоих вариантов ─────────────────────────── */
+  .btn:disabled {
+    opacity: 0.5;
+    filter: grayscale(100%);
+    cursor: not-allowed;
+  }
+
+  /* focus-кольцо приходит из глобального правила (outline 2px accent, offset 2px) */
+</style>

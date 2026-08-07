@@ -1,0 +1,31 @@
+---
+/**
+ * Тег материала на карточке работы.
+ *
+ * Что делает: короткая метка материала (дерево / алюминий / комбо).
+ * Значения оформления — из docs/DESIGN_TOKENS.md дословно.
+ * Вход: текст через слот. Выход: инлайновая метка.
+ * Кто использует: `WorkCard.astro`, витрина `/__ui/`.
+ *
+ * Текст приходит снаружи уже на нужном языке: компонент не переводит.
+ */
+---
+
+<span class="tag"><slot /></span>
+
+<style>
+  .tag {
+    display: inline-block;
+    background: var(--text-main);
+    color: var(--surface);
+    padding-block: 4px;
+    padding-inline: 8px;
+    font-size: 12px;
+    /* Заглавные — приём оформления, а не КАПС в тексте: в источнике строка
+       записана обычным регистром, в иврите преобразование ни на что не влияет. */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    border-radius: var(--radius-base);
+  }
+</style>

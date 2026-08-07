@@ -1,0 +1,189 @@
+---
+/**
+ * Карточка-«паспорт объекта».
+ *
+ * Что делает: рамка 1px, фото 4:3 со «спилом» по внешнему верхнему углу
+ * (зеркалится в RTL), тег материала, штамп «название · город · год»
+ * моноширинным и метрики. Бриф §4.
+ * Вход: props ниже. Выход: `<article>`.
+ * Кто использует: портфолио и главная (F3), витрина `/__ui/`.
+ *
+ * ФЕЙКИ ЗАПРЕЩЕНЫ (бриф §4): метрика без значения не рендерится вообще —
+ * ни подписи, ни прочерка, ни пустого места. Фильтрация ниже, не в CSS.
+ *
+ * Контракт данных пока описан здесь: Zod-схема работы появится в F2, тогда
+ * тип придёт из `src/data/schemas/` и этот интерфейс будет заменён импортом.
+ */
+import MaterialTag from './MaterialTag.astro';
+
+export interface WorkMetric {
+  label: string;
+  value: string;
+}
+
+interface Props {
+  title: string;
+  city: string;
+  year: number;
+  /** Название материала на языке страницы. */
+  material: string;
+  photo: { src: string; width: number; height: number; alt: string };
+  /** Только реальные метрики. Пустые не передавать — они и не отрисуются. */
+  metrics?: WorkMetric[];
+  href?: string;
+  /** Приглушать фото в тёмной теме. В hero и сборках — запрещено (DEC-0005). */
+  dim?: boolean;
+}
+
+const { title, city, year, material, photo, metrics = [], href, dim = true } = Astro.props;
+
+const realMetrics = metrics.filter((m) => m.label.trim() !== '' && m.value.trim() !== '');
+const Tag = href ? 'a' : 'div';
+---
+
+<article class="card">
+  <Tag class="card__link" href={href}>
+    <figure class="card__figure" class:list={[{ 'photo-dim': dim }]}>
+      <img
+        src={photo.src}
+        alt={photo.alt}
+        width={photo.width}
+        height={photo.height}
+        decoding="async"
+        loading="lazy"
+      />
+      <figcaption class="card__tag"><MaterialTag>{material}</MaterialTag></figcaption>
+    </figure>
+
+    <div class="card__body">
+      <h3 class="card__title">{title}</h3>
+      <p class="card__stamp">
+        <span>{city}</span>
+        <span aria-hidden="true">·</span>
+        <bdi dir="ltr">{year}</bdi>
+      </p>
+
+      {
+        realMetrics.length > 0 && (
+          <dl class="card__metrics">
+            {realMetrics.map((metric) => (
+              <div class="card__metric">
+                <dt>{metric.label}</dt>
+                {/*
+                  Значение изолируется как LTR-прогон (бриф §2: числа в иврите —
+                  dir="ltr"). Без этого «100×50» в RTL превращается в «50×100»:
+                  символ × нейтральный, алгоритм bidi разрешает его в направление
+                  абзаца и переставляет числа местами. BUG-0005.
+                */}
+                <dd><bdi dir="ltr">{metric.value}</bdi></dd>
+              </div>
+            ))}
+          </dl>
+        )
+      }
+    </div>
+  </Tag>
+</article>
+
+<style>
+  .card {
+    border: 1px solid var(--border-metal);
+    border-radius: var(--radius-base);
+    background: var(--surface);
+    overflow: hidden;
+    min-inline-size: 0;
+  }
+
+  .card__link {
+    display: flex;
+    flex-direction: column;
+    color: inherit;
+    text-decoration: none;
+    block-size: 100%;
+  }
+
+  .card__figure {
+    position: relative;
+    margin: 0;
+    aspect-ratio: 4 / 3;
+    background: var(--bg);
+    /**
+     * «Спил» — срезанный внешний верхний угол. Координаты polygon физические
+     * по природе, поэтому для RTL задан зеркальный многоугольник ниже.
+     * Это не хардкод направления в раскладке, а геометрия формы.
+     */
+    clip-path: polygon(0 0, calc(100% - 2.5rem) 0, 100% 2.5rem, 100% 100%, 0 100%);
+  }
+
+  :global([dir='rtl']) .card__figure {
+    clip-path: polygon(2.5rem 0, 100% 0, 100% 100%, 0 100%, 0 2.5rem);
+  }
+
+  .card__figure img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .card__tag {
+    position: absolute;
+    inset-block-end: 0.75rem;
+    inset-inline-start: 0.75rem;
+    /* Тег поверх фото, но заведомо ниже портретов и оверлеев (бриф §8: слои ≥50). */
+    z-index: 20;
+  }
+
+  .card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-block: 1rem 1.25rem;
+    padding-inline: 1rem;
+  }
+
+  .card__title {
+    margin: 0;
+    font-size: 1.0625rem;
+    font-weight: 500;
+    line-height: 1.25;
+  }
+
+  .card__stamp {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+
+  .card__metrics {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    border-block-start: 1px solid var(--border-metal);
+    padding-block-start: 0.75rem;
+    margin-block-start: 0.25rem;
+  }
+
+  .card__metric {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-inline-size: 0;
+  }
+
+  .card__metric dt {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .card__metric dd {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+</style>

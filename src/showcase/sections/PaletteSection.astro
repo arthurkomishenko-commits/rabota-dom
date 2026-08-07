@@ -1,0 +1,85 @@
+---
+/**
+ * Раздел витрины: палитра токенов.
+ * Имена берутся отсюда, значения — из CSS в рантайме: разойтись с
+ * docs/DESIGN_TOKENS.md витрине нечем.
+ * Вход: нет. Выход: раздел. Кто использует: `src/showcase/index.astro`.
+ */
+import Specimen from '../Specimen.astro';
+
+const PALETTE = [
+  '--bg',
+  '--surface',
+  '--text-main',
+  '--text-muted',
+  '--accent-wood',
+  '--accent-wood-hover',
+  '--border-metal',
+];
+---
+
+<Specimen
+  title="Палитра"
+  note="Значения читаются из CSS во время показа — витрина физически не может разойтись с docs/DESIGN_TOKENS.md."
+>
+  <ul class="palette">
+    {
+      PALETTE.map((token) => (
+        <li class="palette__item">
+          <span class="palette__chip" style={`background: var(${token})`} />
+          <span class="palette__meta">
+            <code class="palette__name">{token}</code>
+            <code class="palette__value" data-token={token} />
+          </span>
+        </li>
+      ))
+    }
+  </ul>
+</Specimen>
+
+<style>
+  .palette {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .palette__item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+  }
+
+  .palette__chip {
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    flex: none;
+    border: 1px solid var(--border-metal);
+    border-radius: var(--radius-base);
+  }
+
+  .palette__meta {
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+    /* Имена токенов и hex — всегда латиницей слева направо, даже в RTL-панели. */
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  .palette__name {
+    color: var(--text-main);
+  }
+
+  .palette__value {
+    color: var(--text-muted);
+  }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.8125em;
+  }
+</style>

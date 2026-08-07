@@ -1,0 +1,81 @@
+---
+/**
+ * Раздел витрины: тег материала и карточка-«паспорт объекта».
+ * Показывает три случая: полная карточка, карточка без метрик и карточка
+ * с очень длинным названием — фейков быть не должно ни в одном (бриф §4).
+ * Вход: нет. Выход: раздел. Кто использует: `src/showcase/index.astro`.
+ *
+ * Фото — реальная работа Владимира, 1600×1200 (4:3). Через Vite (?url),
+ * поэтому путь получает хэш и base автоматически.
+ */
+import Specimen from '../Specimen.astro';
+import MaterialTag from '../../components/MaterialTag.astro';
+import WorkCard from '../../components/WorkCard.astro';
+import photo from '../demo/pergola-aluminium.jpg?url';
+
+const PHOTO = {
+  src: photo,
+  width: 1600,
+  height: 1200,
+  alt: 'Алюминиевая пергола с ламелями над мощёной площадкой во дворе',
+};
+---
+
+<Specimen title="Тег материала">
+  <div class="row">
+    <MaterialTag>Алюминий</MaterialTag>
+    <MaterialTag>עץ</MaterialTag>
+    <MaterialTag>Комбо</MaterialTag>
+  </div>
+</Specimen>
+
+<Specimen
+  title="Карточка-«паспорт объекта»"
+  note="Спил среза зеркалится в RTL. Метрика без значения не рендерится вообще — ни подписи, ни прочерка (бриф §4: фейки запрещены)."
+>
+  <div class="cards">
+    <WorkCard
+      title="Пергола с ламелями"
+      city="Ноф-ха-Галиль"
+      year={2024}
+      material="Алюминий"
+      photo={PHOTO}
+      href="#work"
+      metrics={[
+        { label: 'Площадь', value: '18 м²' },
+        { label: 'Профиль', value: '100×50' },
+      ]}
+    />
+    <WorkCard
+      title="Навес во дворе"
+      city="Мигдаль-ха-Эмек"
+      year={2023}
+      material="Комбо"
+      photo={PHOTO}
+      metrics={[]}
+    />
+    <WorkCard
+      title="Ламельнаяперголасоченьдлиннымнеразрывнымназванием"
+      city="Кирьят-Тивон"
+      year={2025}
+      material="Дерево"
+      photo={PHOTO}
+      metrics={[{ label: 'Длина', value: '24 пог. м' }]}
+    />
+  </div>
+</Specimen>
+
+<style>
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1rem;
+  }
+</style>

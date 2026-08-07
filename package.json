@@ -21,7 +21,9 @@
     "polish": "npm run build && node scripts/polish-pass.mjs",
     "build:ui": "npm run check:conventions && npm run check:markers && npm run check:budgets && UI_SHOWCASE=1 astro build",
     "check:surface": "node scripts/check-public-surface.mjs",
-    "shots:ui": "npm run build:ui && node scripts/shots-ui.mjs"
+    "shots:ui": "npm run build:ui && node scripts/shots-ui.mjs",
+    "polish:ui": "npm run build:ui && node scripts/polish-pass.mjs",
+    "check:contrast": "node scripts/check-contrast.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

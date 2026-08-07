@@ -1,0 +1,28 @@
+---
+/**
+ * Раздел витрины: поле формы.
+ * Вход: нет. Выход: раздел. Кто использует: `src/showcase/index.astro`.
+ */
+import Specimen from '../Specimen.astro';
+import Field from '../../components/Field.astro';
+---
+
+<Specimen
+  title="Поле формы"
+  note="Нижняя грань — «линия чертежа»: на фокусе становится акцентной. Телефон помечен numeric и набирается слева направо даже в RTL-панели."
+>
+  <div class="grid">
+    <Field id="demo-name" label="Имя" placeholder="Как к вам обращаться" required />
+    <Field id="demo-phone" label="טלפון" type="tel" placeholder="050 000 0000" numeric required />
+    <Field id="demo-city" label="Город" placeholder="Ноф-ха-Галиль" value="נוף הגליל" />
+    <Field id="demo-err" label="Телефон" type="tel" numeric error="Похоже, в номере не хватает цифры" />
+  </div>
+</Specimen>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+</style>

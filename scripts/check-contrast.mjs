@@ -1,0 +1,94 @@
+/**
+ * Измерение контраста пар токенов по WCAG 2.x. Падает — билд красный.
+ *
+ * Что делает: читает значения ИЗ `src/styles/variables.css` (а не из копии
+ * в скрипте — копия однажды разойдётся) и считает коэффициент контраста для
+ * пар, которые реально встречаются на странице.
+ * Запуск: npm run check:contrast
+ *
+ * Пороги WCAG 2.1 AA — требование Израиля (бриф §10):
+ *   4.5 : 1  обычный текст
+ *   3.0 : 1  крупный текст (≥18.66px bold или ≥24px) и нетекстовые элементы
+ *            (границы, фокус-кольца, иконки) — 1.4.11
+ */
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const CSS = readFileSync(join(ROOT, 'src/styles/variables.css'), 'utf8');
+
+/** Достаёт `--имя: #hex;` из источника токенов. */
+function token(name) {
+  const match = CSS.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{3,8})`));
+  if (!match) throw new Error(`токен --${name} не найден в variables.css`);
+  return match[1];
+}
+
+function toRgb(hex) {
+  let h = hex.slice(1);
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+}
+
+/** Относительная яркость, WCAG 2.x. */
+function luminance(hex) {
+  const [r, g, b] = toRgb(hex).map((v) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function ratio(a, b) {
+  const [l1, l2] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (l1 + 0.05) / (l2 + 0.05);
+}
+
+/** Пары: [описание, передний план, фон, минимум, где встречается]. */
+function pairs(theme) {
+  const t = (name) => token(`${theme}-${name}`);
+  return [
+    ['основной текст на фоне', t('text-main'), t('bg'), 4.5, 'вся типографика страницы'],
+    ['основной текст на поверхности', t('text-main'), t('surface'), 4.5, 'карточки, поля'],
+    ['вторичный текст на фоне', t('text-muted'), t('bg'), 4.5, 'подписи, штамп карточки'],
+    ['вторичный текст на поверхности', t('text-muted'), t('surface'), 4.5, 'плейсхолдеры, метрики'],
+    ['текст кнопки на её фоне', t('btn-text'), t('btn-bg-active'), 4.5, 'кнопка «матовый алюминий»'],
+    ['тег материала: текст на плашке', t('surface'), t('text-main'), 4.5, 'тег на карточке'],
+    ['акцент как текст на фоне', t('accent-wood'), t('bg'), 4.5, 'текстовая ссылка CTA'],
+    ['акцент как текст на поверхности', t('accent-wood'), t('surface'), 4.5, 'ссылки внутри карточек'],
+    ['фокус-кольцо на фоне', t('accent-wood'), t('bg'), 3.0, 'нетекстовый контраст, 1.4.11'],
+    ['фокус-кольцо на поверхности', t('accent-wood'), t('surface'), 3.0, 'нетекстовый контраст, 1.4.11'],
+    ['граница на поверхности', t('border-metal'), t('surface'), 3.0, 'рамка карточки, инпута'],
+  ];
+}
+
+let failed = 0;
+const notes = [];
+
+for (const theme of ['light', 'dark']) {
+  console.log(`\n── ${theme === 'light' ? 'светлая' : 'тёмная'} тема ──`);
+  for (const [label, fg, bg, min, where] of pairs(theme)) {
+    const value = ratio(fg, bg);
+    const ok = value >= min;
+    if (!ok) {
+      failed += 1;
+      notes.push(`${theme}: ${label} — ${value.toFixed(2)} при пороге ${min} (${where})`);
+    }
+    console.log(
+      `${ok ? '✓' : '✗'} ${label.padEnd(34)} ${fg} на ${bg}  ${value.toFixed(2)} : 1  (мин ${min})`,
+    );
+  }
+}
+
+if (failed > 0) {
+  console.error(`\nПар ниже порога AA: ${failed}`);
+  for (const note of notes) console.error(`  · ${note}`);
+  console.error(
+    '\nПорог не трогать. Решение — правило употребления или отдельный токен,\n' +
+      'и только через Артура с записью в DECISIONS (QUALITY_DOCTRINE §2, §7).',
+  );
+  process.exit(1);
+}
+
+console.log('\n✓ все пары проходят AA');

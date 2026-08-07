@@ -1,0 +1,34 @@
+---
+/**
+ * Раздел витрины: sticky-панель трёх каналов.
+ * Вход: нет. Выход: раздел. Кто использует: `src/showcase/index.astro`.
+ *
+ * Адреса здесь демонстрационные (`#`): реальные придут из конфига в F3 —
+ * компонент их не знает и знать не должен.
+ */
+import Specimen from '../Specimen.astro';
+import StickyChannels from '../../components/StickyChannels.astro';
+---
+
+<Specimen
+  title="Sticky-панель трёх каналов"
+  note="Три равные доли: ни один канал визуально не главнее. Цель ≥52px по высоте. Появление со второго экрана привязано к hero и включается в F3."
+>
+  <div class="frame">
+    <StickyChannels
+      label="Способы связи"
+      whatsapp={{ label: 'WhatsApp', href: '#wa' }}
+      call={{ label: 'Позвонить', href: '#tel' }}
+      request={{ label: 'Заявка', href: '#form' }}
+    />
+  </div>
+</Specimen>
+
+<style>
+  /* Рамка изображает нижний край экрана — панель в жизни прижата к нему. */
+  .frame {
+    border: 1px dashed var(--border-metal);
+    border-radius: var(--radius-base);
+    padding: 0.5rem;
+  }
+</style>

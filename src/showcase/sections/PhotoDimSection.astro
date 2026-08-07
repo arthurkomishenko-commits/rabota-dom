@@ -1,0 +1,61 @@
+---
+/**
+ * Раздел витрины: диммер фото тёмной темы.
+ * Слева — фото с классом `photo-dim` (гаснет на наведении), справа — фото
+ * без него: так на одном скрине видно и эффект, и то, что он опциональный.
+ * Вход: нет. Выход: раздел. Кто использует: `src/showcase/index.astro`.
+ *
+ * DEC-0005: диммер применяется ТОЛЬКО опт-ин классом. В hero и сборках
+ * filter запрещён (бриф §7), поэтому глобального селектора по `img` нет.
+ */
+import Specimen from '../Specimen.astro';
+import photo from '../demo/pergola-aluminium.jpg?url';
+---
+
+<Specimen
+  title="Диммер фото (тёмная тема)"
+  note="Эффект виден только в тёмной теме и только у помеченного фото. Наведите курсор — приглушение гаснет. Правое фото имитирует hero: там filter запрещён."
+>
+  <div class="pair">
+    <figure class="pair__item">
+      <div class="photo-dim">
+        <img src={photo} width="1600" height="1200" decoding="async" loading="lazy" alt="" />
+      </div>
+      <figcaption>с классом photo-dim</figcaption>
+    </figure>
+
+    <figure class="pair__item" data-hero-like>
+      <div>
+        <img src={photo} width="1600" height="1200" decoding="async" loading="lazy" alt="" />
+      </div>
+      <figcaption>как в hero — без фильтра</figcaption>
+    </figure>
+  </div>
+</Specimen>
+
+<style>
+  .pair {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .pair__item {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .pair__item img {
+    inline-size: 100%;
+    block-size: auto;
+    display: block;
+    border-radius: var(--radius-base);
+  }
+
+  .pair__item figcaption {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+</style>

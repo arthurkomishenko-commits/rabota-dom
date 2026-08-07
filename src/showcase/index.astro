@@ -2,34 +2,23 @@
 /**
  * Витрина компонентов, фаза F1.
  *
- * Что делает: показывает каждый компонент дизайн-системы во всех состояниях,
- * в обоих направлениях, в обеих темах. Единственное место, куда нацелены
- * скриншот-прогоны гейта F1.
+ * Что делает: собирает разделы витрины в одну страницу. Каждый раздел живёт
+ * своим файлом в `sections/` — одна ответственность на файл (§5).
  * Вход: нет. Выход: страница `/__ui/`.
  *
  * В production-сборке этого маршрута НЕ СУЩЕСТВУЕТ: он инжектится интеграцией
  * `rabota-dom:ui-showcase` только при `UI_SHOWCASE=1` (DEC-0011).
  * Открывается через `npm run dev` или `npm run build:ui`.
- *
- * Разделы добавляются по шагам манифеста 02 — по одному на компонент.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
-import Specimen from './Specimen.astro';
-
-/**
- * Только ИМЕНА токенов: значения остаются в `variables.css` и подставляются
- * браузером. Так витрина не может разойтись с источником — ей нечем разойтись.
- */
-const PALETTE = [
-  '--bg',
-  '--surface',
-  '--text-main',
-  '--text-muted',
-  '--accent-wood',
-  '--accent-wood-hover',
-  '--border-metal',
-];
+import PaletteSection from './sections/PaletteSection.astro';
+import FocusSection from './sections/FocusSection.astro';
+import ButtonSection from './sections/ButtonSection.astro';
+import FieldSection from './sections/FieldSection.astro';
+import CardSection from './sections/CardSection.astro';
+import ChannelsSection from './sections/ChannelsSection.astro';
+import PhotoDimSection from './sections/PhotoDimSection.astro';
 ---
 
 <BaseLayout locale="en" title="Rabota Dom — UI showcase" noindex>
@@ -48,40 +37,13 @@ const PALETTE = [
       показано в каждом образце сразу обоими вариантами.
     </p>
 
-    <Specimen
-      title="Палитра"
-      note="Значения читаются из CSS во время показа — витрина физически не может разойтись с docs/DESIGN_TOKENS.md."
-    >
-      <ul class="palette">
-        {
-          PALETTE.map((token) => (
-            <li class="palette__item">
-              <span class="palette__chip" style={`background: var(${token})`} />
-              <span class="palette__meta">
-                <code class="palette__name">{token}</code>
-                <code class="palette__value" data-token={token} />
-              </span>
-            </li>
-          ))
-        }
-      </ul>
-    </Specimen>
-
-    <Specimen
-      title="Фокус-кольцо"
-      note="Глобальное правило: outline 2px акцентом, offset 2px, на всех интерактивах и в обеих темах. Пройдитесь Tab — кольцо обязано быть видно."
-    >
-      <div class="focus-row">
-        <a href="#focus-demo" id="focus-demo">Ссылка</a>
-        <button type="button">Кнопка</button>
-        <input type="text" placeholder="Поле" aria-label="Демонстрационное поле" />
-      </div>
-    </Specimen>
-
-    <p class="ui__todo">
-      Дальше по манифесту 02: кнопка «матовый алюминий» · инпут · тег материала ·
-      карточка-«паспорт объекта» · sticky-панель трёх каналов · диммер фото.
-    </p>
+    <PaletteSection />
+    <FocusSection />
+    <ButtonSection />
+    <FieldSection />
+    <CardSection />
+    <ChannelsSection />
+    <PhotoDimSection />
   </main>
 </BaseLayout>
 
@@ -97,7 +59,6 @@ const PALETTE = [
   }
 
   paintValues();
-  // Тема меняется — значения меняются вместе с ней.
   new MutationObserver(paintValues).observe(document.documentElement, {
     attributes: true,
     attributeFilter: ['data-theme'],
@@ -139,84 +100,15 @@ const PALETTE = [
     font-weight: 500;
   }
 
-  .ui__note,
-  .ui__todo {
+  .ui__note {
     margin: 0;
     max-inline-size: var(--measure);
     color: var(--text-muted);
     font-size: 0.9375rem;
   }
 
-  .ui__todo {
-    border-block-start: 1px solid var(--border-metal);
-    padding-block-start: 1rem;
-  }
-
   code {
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.8125em;
-  }
-
-  .palette {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 0.75rem;
-  }
-
-  .palette__item {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-  }
-
-  .palette__chip {
-    inline-size: 2.25rem;
-    block-size: 2.25rem;
-    flex: none;
-    border: 1px solid var(--border-metal);
-    border-radius: var(--radius-base);
-  }
-
-  .palette__meta {
-    display: flex;
-    flex-direction: column;
-    min-inline-size: 0;
-    /* Имена токенов и hex — всегда латиницей слева направо, даже в RTL-панели. */
-    direction: ltr;
-    unicode-bidi: isolate;
-  }
-
-  .palette__name {
-    color: var(--text-main);
-  }
-
-  .palette__value {
-    color: var(--text-muted);
-  }
-
-  .focus-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .focus-row a {
-    color: var(--accent-wood);
-  }
-
-  .focus-row button,
-  .focus-row input {
-    font: inherit;
-    font-size: 0.875rem;
-    border: 1px solid var(--border-metal);
-    border-radius: var(--radius-base);
-    background: var(--surface);
-    color: var(--text-main);
-    padding-block: 0.5rem;
-    padding-inline: 0.75rem;
   }
 </style>

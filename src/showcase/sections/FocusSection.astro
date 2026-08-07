@@ -1,0 +1,43 @@
+---
+/**
+ * Раздел витрины: глобальное фокус-кольцо.
+ * Вход: нет. Выход: раздел. Кто использует: `src/showcase/index.astro`.
+ */
+import Specimen from '../Specimen.astro';
+---
+
+<Specimen
+  title="Фокус-кольцо"
+  note="Глобальное правило: outline 2px акцентом, offset 2px, на всех интерактивах и в обеих темах. Пройдитесь Tab — кольцо обязано быть видно."
+>
+  <div class="focus-row">
+    <a href="#focus-demo" id="focus-demo">Ссылка</a>
+    <button type="button">Кнопка</button>
+    <input type="text" placeholder="Поле" aria-label="Демонстрационное поле" />
+  </div>
+</Specimen>
+
+<style>
+  .focus-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .focus-row a {
+    color: var(--accent-wood);
+  }
+
+  .focus-row button,
+  .focus-row input {
+    font: inherit;
+    font-size: 0.875rem;
+    border: 1px solid var(--border-metal);
+    border-radius: var(--radius-base);
+    background: var(--surface);
+    color: var(--text-main);
+    padding-block: 0.5rem;
+    padding-inline: 0.75rem;
+  }
+</style>

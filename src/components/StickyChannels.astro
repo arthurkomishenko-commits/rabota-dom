@@ -1,0 +1,84 @@
+---
+/**
+ * Sticky-панель трёх каналов связи (мобайл).
+ *
+ * Что делает: WhatsApp · Позвонить · Заявка — три РАВНОПРАВНЫХ канала
+ * («быстро спросить / обсудить сразу / оставить заявку», бриф §3).
+ * Ни один визуально не главнее: одинаковая ширина, вес и высота.
+ * Вход: подписи и адреса через props. Выход: панель, закреплённая снизу.
+ * Кто использует: главная и внутренние страницы (F3), витрина `/__ui/`.
+ *
+ * Границы фазы: появление со второго экрана привязано к hero, которого ещё
+ * нет — оно включается в F3. Здесь panel рисуется, когда `visible` истинно;
+ * в F3 этим флагом будет управлять наблюдатель за hero.
+ */
+interface Channel {
+  label: string;
+  href: string;
+  /** Подпись для скринридера, если текста метки недостаточно. */
+  ariaLabel?: string;
+}
+
+interface Props {
+  whatsapp: Channel;
+  call: Channel;
+  request: Channel;
+  label: string;
+  visible?: boolean;
+}
+
+const { whatsapp, call, request, label, visible = true } = Astro.props;
+const channels = [whatsapp, call, request];
+---
+
+<nav class="channels" aria-label={label} data-visible={visible ? 'true' : 'false'}>
+  {
+    channels.map((channel) => (
+      <a class="channels__item" href={channel.href} aria-label={channel.ariaLabel}>
+        {channel.label}
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  .channels {
+    display: grid;
+    /* Три равные доли — равноправие каналов заложено в раскладку, не в текст. */
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border-metal);
+    border-block-start: 1px solid var(--border-metal);
+  }
+
+  .channels[data-visible='false'] {
+    display: none;
+  }
+
+  .channels__item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    /* Палец: цель не меньше 44px по короткой стороне. */
+    min-block-size: 52px;
+    padding-inline: 0.5rem;
+    background: var(--surface);
+    color: var(--text-main);
+    text-decoration: none;
+    font-size: 0.875rem;
+    line-height: 1.2;
+  }
+
+  .channels__item:hover {
+    background: var(--btn-bg-active);
+  }
+
+  /* На узких экранах длинные подписи не должны склеиваться в кашу. */
+  @media (max-width: 22rem) {
+    .channels__item {
+      font-size: 0.8125rem;
+      padding-inline: 0.25rem;
+    }
+  }
+</style>

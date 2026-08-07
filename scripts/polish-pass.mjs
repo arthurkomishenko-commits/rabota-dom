@@ -141,6 +141,110 @@ try {
     );
     await context.close();
   }
+
+  // ── 6. Витрина F1. Проверки включаются только если она есть в dist:
+  //       production-сборка их не касается (DEC-0011).
+  const showcase = await fetch(url('__ui/'));
+  if (!showcase.ok) {
+    console.log('· витрина в dist отсутствует — проверки F1 пропущены (это норма для production)');
+  } else {
+    // 6.1 Клавиатура: каждый интерактив достижим и имеет видимое кольцо.
+    {
+      const context = await browser.newContext();
+      const tab = await context.newPage();
+      await tab.goto(url('__ui/'), { waitUntil: 'networkidle' });
+
+      const audit = await tab.evaluate(() => {
+        const nodes = Array.from(
+          document.querySelectorAll('a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])'),
+        );
+        const noRing = [];
+        for (const node of nodes) {
+          node.focus();
+          const s = getComputedStyle(node);
+          if (s.outlineStyle === 'none' || parseFloat(s.outlineWidth) < 2) {
+            noRing.push(node.textContent?.trim().slice(0, 24) || node.tagName.toLowerCase());
+          }
+        }
+        return { total: nodes.length, noRing };
+      });
+
+      say(
+        audit.noRing.length === 0,
+        `клавиатура · кольцо видно на всех ${audit.total} интерактивах витрины`,
+        audit.noRing.length ? `без кольца: ${audit.noRing.join(', ')}` : '',
+      );
+
+      // Отключённая кнопка не должна попадать в обход табом.
+      const disabledFocusable = await tab.evaluate(() => {
+        const el = document.querySelector('button[disabled]');
+        if (!el) return null;
+        el.focus();
+        return document.activeElement === el;
+      });
+      say(disabledFocusable === false, 'клавиатура · отключённая кнопка не получает фокус');
+
+      await context.close();
+    }
+
+    // 6.2 Узкий вьюпорт: витрина не порождает горизонтальную прокрутку,
+    //     а цели sticky-панели остаются достаточно крупными.
+    {
+      const context = await browser.newContext({ viewport: { width: 320, height: 640 } });
+      const tab = await context.newPage();
+      await tab.goto(url('__ui/'), { waitUntil: 'networkidle' });
+
+      const state = await tab.evaluate(() => {
+        const doc = document.documentElement;
+        const targets = Array.from(document.querySelectorAll('.channels__item')).map((n) => {
+          const r = n.getBoundingClientRect();
+          return Math.min(r.width, r.height);
+        });
+        return { doc: doc.scrollWidth, client: doc.clientWidth, targets };
+      });
+
+      say(
+        state.doc <= state.client,
+        '320px · витрина без горизонтальной прокрутки',
+        `scrollWidth ${state.doc} ≤ clientWidth ${state.client}`,
+      );
+      say(
+        state.targets.length > 0 && state.targets.every((t) => t >= 44),
+        '320px · цели sticky-панели ≥44px по короткой стороне',
+        `минимум ${Math.min(...state.targets).toFixed(0)}px из ${state.targets.length}`,
+      );
+      await context.close();
+    }
+
+    // 6.3 Диммер фото строго опт-ин: в hero-подобном блоке фильтра нет (DEC-0005).
+    {
+      const context = await browser.newContext({ colorScheme: 'dark' });
+      const tab = await context.newPage();
+      await tab.goto(url('__ui/'), { waitUntil: 'networkidle' });
+
+      const filters = await tab.evaluate(() => ({
+        dimmed: getComputedStyle(document.querySelector('.photo-dim img')).filter,
+        heroLike: getComputedStyle(document.querySelector('[data-hero-like] img')).filter,
+      }));
+
+      say(filters.dimmed !== 'none', 'тёмная тема · photo-dim приглушает', filters.dimmed);
+      say(filters.heroLike === 'none', 'тёмная тема · в hero-подобном блоке фильтра нет', filters.heroLike);
+      await context.close();
+    }
+
+    // 6.4 Без JS витрина остаётся читаемой (значения токенов подставляет скрипт —
+    //     их отсутствие ожидаемо,а разметка обязана остаться целой).
+    {
+      const context = await browser.newContext({ javaScriptEnabled: false });
+      const tab = await context.newPage();
+      await tab.goto(url('__ui/'), { waitUntil: 'load' });
+      const ok = await tab.evaluate(
+        () => document.querySelectorAll('.card').length > 0 && Boolean(document.querySelector('h1')),
+      );
+      say(ok, 'без JS · витрина рендерится, карточки на месте');
+      await context.close();
+    }
+  }
 } finally {
   await browser.close();
   server.close();
