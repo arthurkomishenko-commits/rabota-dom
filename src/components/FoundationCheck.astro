@@ -1,0 +1,135 @@
+---
+/**
+ * Техническая страница фазы F0. Существует ради проверок гейта:
+ * направление документа, зеркалирование логических свойств, каскад темы,
+ * загрузка нужного сабсета шрифта. Удаляется в F3, когда придёт главная.
+ */
+import ThemeToggle from './ThemeToggle.astro';
+import { LOCALES, LOCALE_DIR, LOCALE_LABEL, type Locale } from '../i18n/config';
+import { UI } from '../i18n/ui';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = UI[locale];
+---
+
+<main class="measure scaffold">
+  <header class="scaffold__head">
+    <p class="brand">RABOTA DOM</p>
+    <ThemeToggle labelLight={t.themeLight} labelDark={t.themeDark} />
+  </header>
+
+  <h1>{t.scaffoldHeading}</h1>
+
+  <dl class="facts">
+    <dt>{t.dirLabel}</dt>
+    <dd data-ltr>{LOCALE_DIR[locale]}</dd>
+    <dt>{t.fontLabel}</dt>
+    <dd data-ltr>Rubik Variable</dd>
+  </dl>
+
+  {/* Логические свойства: полоса обязана зеркалиться в RTL без правок CSS. */}
+  <section aria-label={t.mirrorLabel} class="mirror">
+    <span class="mirror__cell mirror__cell--start">{t.start}</span>
+    <span class="mirror__cell">2</span>
+    <span class="mirror__cell mirror__cell--end">{t.end}</span>
+  </section>
+
+  <nav class="langs">
+    {
+      LOCALES.map((code) => (
+        <a href={getRelativeLocaleUrl(code, '/')} hreflang={code} lang={code}>
+          {LOCALE_LABEL[code]}
+        </a>
+      ))
+    }
+  </nav>
+</main>
+
+<style>
+  .scaffold {
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+    padding-block: 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .scaffold__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-block-end: 1px solid var(--border-metal);
+    padding-block-end: 1rem;
+  }
+
+  .brand {
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-brand);
+    margin: 0;
+  }
+
+  h1 {
+    margin: 0;
+    font-weight: 500;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 1rem;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+  }
+
+  .facts dt {
+    font-weight: 500;
+    color: var(--text-main);
+  }
+
+  .facts dd {
+    margin: 0;
+  }
+
+  .mirror {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .mirror__cell {
+    border: 1px solid var(--border-metal);
+    border-radius: var(--radius-base);
+    background: var(--surface);
+    padding-block: 0.5rem;
+    padding-inline: 1rem;
+    font-size: 0.875rem;
+  }
+
+  /* Акцент только на «начале» — в RTL он обязан оказаться справа. */
+  .mirror__cell--start {
+    border-inline-start: 3px solid var(--accent-wood);
+  }
+
+  .mirror__cell--end {
+    color: var(--text-muted);
+  }
+
+  .langs {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9375rem;
+  }
+
+  .langs a {
+    color: var(--accent-wood);
+    text-underline-offset: 0.2em;
+  }
+</style>

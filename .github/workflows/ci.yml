@@ -1,0 +1,71 @@
+name: CI
+
+# Сборка и проверки — на каждый PR и на push в main.
+# Деплой на Pages — только с main (бриф §2: GitHub Pages + Actions).
+# LHCI подключается в F3, Zod-гейт и banned-phrases — в F2.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Сборка и проверки
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Конвенции (dvh, логические свойства)
+        run: npm run check:conventions
+
+      - name: Бюджеты ассетов
+        run: npm run check:budgets
+
+      - name: Типы
+        run: npm run check:types
+
+      - name: Сборка
+        run: npm run build
+
+      - name: Конфигурация Pages
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+
+      - name: Артефакт Pages
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Деплой на Pages
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Публикация
+        id: deployment
+        uses: actions/deploy-pages@v4

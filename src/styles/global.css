@@ -1,1 +1,127 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@import './variables.css';
+@import './fonts.css';
+
+/**
+ * Мост между CSS-токенами и утилитами Tailwind.
+ * `inline` обязателен: значения меняются в рантайме при смене темы
+ * ([data-theme='dark']), поэтому Tailwind должен подставить var(), а не
+ * вычисленное значение на этапе сборки.
+ */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-main: var(--text-main);
+  --color-muted: var(--text-muted);
+  --color-accent: var(--accent-wood);
+  --color-accent-hover: var(--accent-wood-hover);
+  --color-metal: var(--border-metal);
+
+  --font-sans: var(--font-stack);
+  --radius-edge: var(--radius-base);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    background-color: var(--bg);
+    color: var(--text-main);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-block-size: 100dvh;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    line-height: var(--line-height-heading);
+  }
+
+  /**
+   * Фокус-кольцо на всех интерактивах, обе темы (бриф §7, DESIGN_TOKENS.md).
+   * :where() держит специфичность нулевой — компонент может переопределить
+   * вид кольца, не «перебивая» !important'ом.
+   */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  /* Телефоны и числа внутри иврита — бриф §2, EDITORIAL §9. */
+  [dir='rtl'] :where(.ltr-nums, tel, [data-ltr]) {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+}
+
+/**
+ * Нижняя ступень деградации-лестницы (бриф §8, протокол §8).
+ * Полная режиссура появится в F5; здесь — гарантия, что при
+ * reduced-motion пользователь сразу видит финальное состояние.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/**
+ * Единица «vh» запрещена (бриф §8, протокол §8) — на мобильных она «прыгает»
+ * вместе с адресной строкой. Только dvh, только логические свойства.
+ * Нарушения ловит `npm run check:conventions`.
+ */
+@utility h-viewport {
+  block-size: 100dvh;
+}
+
+@utility min-h-viewport {
+  min-block-size: 100dvh;
+}
+
+/** Ширина текстового блока ≤65ch (бриф §7). Логическое свойство — работает и в RTL. */
+@utility measure {
+  max-inline-size: var(--measure);
+}
+
+/**
+ * Диммер фото тёмной темы. ТОЛЬКО опт-ин классом и только для статичных
+ * фото ниже фолда: в hero и сборках filter запрещён (бриф §7).
+ * Поэтому здесь класс-обёртка, а не глобальный селектор по `img`.
+ * Полная проработка — F1.
+ */
+@utility photo-dim {
+  position: relative;
+  box-shadow: var(--photo-isolate);
+
+  & img {
+    filter: var(--photo-filter);
+    transition: filter 0.3s ease;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: var(--photo-dim);
+    transition: background-color 0.3s ease;
+    pointer-events: none;
+  }
+
+  &:hover img {
+    filter: none;
+  }
+
+  &:hover::after {
+    background-color: transparent;
+  }
+}

@@ -1,0 +1,16 @@
+---
+/**
+ * /admin зарезервирован под Decap CMS (фаза F9) и НЕ входит в языковую
+ * матрицу — бриф §2, §9. Здесь только заглушка, которая держит маршрут
+ * занятым и доказывает, что hreflang для него не генерируется.
+ * Локаль указана как 'en' лишь для валидного lang/dir у документа.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout locale="en" title="Rabota Dom — admin" noindex>
+  <main style="padding: 3rem 1.5rem;">
+    <h1 style="font-weight: 500;">Admin</h1>
+    <p style="color: var(--text-muted);">Reserved for Decap CMS (phase F9).</p>
+  </main>
+</BaseLayout>

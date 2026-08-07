@@ -1,0 +1,81 @@
+---
+/**
+ * Тумблер темы. F0 — заглушка по функции, но не по поведению:
+ * выбор пользователя перезаписывает системную настройку и переживает
+ * перезагрузку (решение финальной приёмки, бриф §2 — доступность).
+ * Внешний вид — F1, здесь только семантика и фокус-кольцо.
+ */
+interface Props {
+  labelLight: string;
+  labelDark: string;
+}
+
+const { labelLight, labelDark } = Astro.props;
+---
+
+<button
+  type="button"
+  class="theme-toggle"
+  data-theme-toggle
+  data-label-light={labelLight}
+  data-label-dark={labelDark}
+>
+  <span data-theme-toggle-text></span>
+</button>
+
+<style>
+  .theme-toggle {
+    border: 1px solid var(--border-metal);
+    border-radius: var(--radius-base);
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    box-shadow: var(--btn-shadow);
+    padding-block: 0.5rem;
+    padding-inline: 0.75rem;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.875rem;
+  }
+
+  .theme-toggle:hover {
+    background: var(--btn-bg-hover);
+    border-color: var(--btn-border-hover);
+  }
+
+  .theme-toggle:active {
+    background: var(--btn-bg-active);
+    box-shadow: var(--btn-shadow-active);
+  }
+</style>
+
+<script>
+  const STORAGE_KEY = 'theme';
+
+  function apply(button: HTMLElement, theme: 'light' | 'dark') {
+    document.documentElement.dataset.theme = theme;
+
+    const text = button.querySelector<HTMLElement>('[data-theme-toggle-text]');
+    // Подпись показывает, КУДА переключит нажатие.
+    const next = theme === 'dark' ? 'light' : 'dark';
+    const label = next === 'dark' ? button.dataset.labelDark : button.dataset.labelLight;
+
+    if (text && label) text.textContent = label;
+    button.setAttribute('aria-label', label ?? '');
+    button.setAttribute('aria-pressed', String(theme === 'dark'));
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-theme-toggle]').forEach((button) => {
+    const current = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+    apply(button, current);
+
+    button.addEventListener('click', () => {
+      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      try {
+        localStorage.setItem(STORAGE_KEY, next);
+      } catch {
+        // приватный режим — тема применится, но не переживёт перезагрузку
+      }
+      apply(button, next);
+    });
+  });
+</script>

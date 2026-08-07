@@ -1,0 +1,101 @@
+---
+import { getAbsoluteLocaleUrl } from 'astro:i18n';
+import '../styles/global.css';
+import {
+  DEFAULT_LOCALE,
+  LOCALES,
+  LOCALE_DIR,
+  getRouteKey,
+  isNonLocalizedPath,
+  type Locale,
+} from '../i18n/config';
+
+// Сабсеты грузим через Vite (?url): так preload указывает ровно на тот же
+// хэшированный файл, что подставится в @font-face, и base учитывается сам.
+import rubikHebrew from '../styles/fonts/rubik-hebrew-wght-normal.woff2?url';
+import rubikCyrillic from '../styles/fonts/rubik-cyrillic-wght-normal.woff2?url';
+import rubikLatin from '../styles/fonts/rubik-latin-wght-normal.woff2?url';
+
+interface Props {
+  locale: Locale;
+  title: string;
+  description?: string;
+  noindex?: boolean;
+}
+
+const { locale, title, description, noindex = false } = Astro.props;
+
+const dir = LOCALE_DIR[locale];
+const canonical = new URL(Astro.url.pathname, Astro.site);
+
+// Вне языковой матрицы (/admin) hreflang не строим — бриф §2.
+const localized = !isNonLocalizedPath(Astro.url.pathname);
+const routeKey = getRouteKey(Astro.url.pathname);
+
+const alternates = localized
+  ? LOCALES.map((code) => ({ code, href: getAbsoluteLocaleUrl(code, routeKey) }))
+  : [];
+
+// x-default → ивритская версия того же маршрута (для главной это буквально '/').
+const xDefault = localized ? getAbsoluteLocaleUrl(DEFAULT_LOCALE, routeKey) : null;
+
+// Предзагружаем только сабсет языка страницы. Латиница (лого) догрузится
+// обычным путём со swap — держим бюджет критического пути минимальным.
+const preloadFont =
+  locale === 'he' ? rubikHebrew : locale === 'ru' ? rubikCyrillic : rubikLatin;
+---
+
+<!doctype html>
+<html lang={locale} dir={dir}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+
+    {/*
+      Каскад темы: localStorage → prefers-color-scheme → light.
+      Строго ДО стилей и без внешнего файла, иначе будет FOUC (риск манифеста 01).
+    */}
+    <script is:inline>
+      (function () {
+        var theme = 'light';
+        try {
+          var stored = localStorage.getItem('theme');
+          if (stored === 'light' || stored === 'dark') {
+            theme = stored;
+          } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            theme = 'dark';
+          }
+        } catch (e) {
+          /* приватный режим — остаётся светлая */
+        }
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
+
+    <link
+      rel="preload"
+      href={preloadFont}
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
+
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={canonical.href} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    {
+      alternates.map(({ code, href }) => (
+        <link rel="alternate" hreflang={code} href={href} />
+      ))
+    }
+    {xDefault && <link rel="alternate" hreflang="x-default" href={xDefault} />}
+
+    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
