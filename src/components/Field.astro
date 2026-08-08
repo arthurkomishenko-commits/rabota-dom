@@ -84,7 +84,7 @@ const errorId = `${id}-error`;
   }
 
   .field__required {
-    color: var(--accent-wood);
+    color: var(--accent-text);
     margin-inline-start: 0.125rem;
   }
 
@@ -94,8 +94,14 @@ const errorId = `${id}-error`;
     color: var(--text-main);
     background: var(--surface);
     border: 1px solid var(--border-metal);
-    /* «Линия чертежа»: нижняя грань толще остальных. */
+    /**
+     * «Линия чертежа»: нижняя грань толще и контрастнее остальных.
+     * Именно она опознаёт поле — заливка поля почти не отличается от страницы
+     * (--surface против --bg = 1.07). Тонкая рамка остаётся декоративной,
+     * требование WCAG 1.4.11 (3:1) выполняет эта линия. DEC-0012.
+     */
     border-block-end-width: 2px;
+    border-block-end-color: var(--text-muted);
     border-radius: var(--radius-base);
     min-block-size: 44px;
     padding-block: 0.5rem;
@@ -119,6 +125,6 @@ const errorId = `${id}-error`;
   .field__error {
     margin: 0;
     font-size: 0.8125rem;
-    color: var(--accent-wood);
+    color: var(--accent-text);
   }
 </style>

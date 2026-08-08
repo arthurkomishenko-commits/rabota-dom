@@ -90,7 +90,9 @@ const classes = ['btn', `btn--${variant}`, className].filter(Boolean).join(' ');
   .btn--text {
     background: none;
     border: 1px solid transparent;
-    color: var(--accent-wood);
+    /* Мелкий сплошной текст — только --accent-text (DEC-0012):
+       --accent-wood в светлой теме даёт 4.27 при пороге 4.5. */
+    color: var(--accent-text);
     padding-inline: 0.25rem;
     text-underline-offset: 0.25em;
     text-decoration: underline;

@@ -41,6 +41,9 @@ jobs:
       - name: Бюджеты ассетов
         run: npm run check:budgets
 
+      - name: Контраст AA
+        run: npm run check:contrast
+
       - name: Самотест проверок
         run: npm run check:selftest
 

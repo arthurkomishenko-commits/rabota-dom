@@ -22,9 +22,10 @@
   --light-bg: #f7f7f9; /* фон, холодный */
   --light-surface: #ffffff; /* поверхности, карточки */
   --light-text-main: #1e242b; /* основной текст, «графит» */
-  --light-text-muted: #64748b; /* вторичный текст, плейсхолдеры */
-  --light-accent-wood: #c25e24; /* акцент «кедр» */
+  --light-text-muted: #5f6b80; /* вторичный текст, плейсхолдеры (AA, DEC-0012) */
+  --light-accent-wood: #c25e24; /* акцент «кедр»: кнопки, кольца, крупные элементы */
   --light-accent-wood-hover: #a04a1a;
+  --light-accent-text: #98461a; /* акцент, пригодный для мелкого текста (DEC-0012) */
   --light-border-metal: #cbd5e1; /* линии чертежа, бордеры */
 
   /* Кнопка «матовый алюминий» · светлая */
@@ -49,6 +50,9 @@
   --dark-text-muted: #94a3b8;
   --dark-accent-wood: #e07a3e; /* светлее для контраста на тёмном */
   --dark-accent-wood-hover: #f29054;
+  /* В тёмной теме отдельное значение не нужно: акцент уже проходит AA
+     как текст (5.65 : 1 на поверхности). Осознанно тот же цвет (DEC-0012). */
+  --dark-accent-text: #e07a3e;
   --dark-border-metal: #2d333b; /* «фрезеровка» 1px */
 
   /* Кнопка «матовый алюминий» · тёмная (выведено, полировка в F1) */
@@ -91,6 +95,7 @@
   --text-muted: var(--light-text-muted);
   --accent-wood: var(--light-accent-wood);
   --accent-wood-hover: var(--light-accent-wood-hover);
+  --accent-text: var(--light-accent-text);
   --border-metal: var(--light-border-metal);
   --btn-bg: var(--light-btn-bg);
   --btn-bg-hover: var(--light-btn-bg-hover);
@@ -119,6 +124,7 @@
     --text-muted: var(--dark-text-muted);
     --accent-wood: var(--dark-accent-wood);
     --accent-wood-hover: var(--dark-accent-wood-hover);
+    --accent-text: var(--dark-accent-text);
     --border-metal: var(--dark-border-metal);
     --btn-bg: var(--dark-btn-bg);
     --btn-bg-hover: var(--dark-btn-bg-hover);
@@ -142,6 +148,7 @@
   --text-muted: var(--light-text-muted);
   --accent-wood: var(--light-accent-wood);
   --accent-wood-hover: var(--light-accent-wood-hover);
+  --accent-text: var(--light-accent-text);
   --border-metal: var(--light-border-metal);
   --btn-bg: var(--light-btn-bg);
   --btn-bg-hover: var(--light-btn-bg-hover);
@@ -163,6 +170,7 @@
   --text-muted: var(--dark-text-muted);
   --accent-wood: var(--dark-accent-wood);
   --accent-wood-hover: var(--dark-accent-wood-hover);
+  --accent-text: var(--dark-accent-text);
   --border-metal: var(--dark-border-metal);
   --btn-bg: var(--dark-btn-bg);
   --btn-bg-hover: var(--dark-btn-bg-hover);
