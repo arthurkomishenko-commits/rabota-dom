@@ -15,7 +15,20 @@ import { glob } from 'astro/loaders';
 import { workSchema } from './data/schemas/work';
 
 const works = defineCollection({
-  loader: glob({ base: './content/works', pattern: '**/{he,ru,en}.mdx' }),
+  loader: glob({
+    base: './content/works',
+    pattern: '**/{he,ru,en}.mdx',
+    /**
+     * ID строится из ПУТИ файла: `work-01-pergola/ru`.
+     *
+     * Умолчание loader'а берёт id из поля `slug`, если оно есть во фронтматтере,
+     * а `slug` у трёх языковых версий одной работы общий — это URL, он обязан
+     * совпадать. В результате записи схлопывались в одну, и две локали из трёх
+     * молча пропадали из коллекции. Поймано снимком витрины: заголовки локалей
+     * были, карточек не было. BUG-0006.
+     */
+    generateId: ({ entry }) => entry.replace(/\.mdx?$/, ''),
+  }),
   schema: workSchema,
 });
 

@@ -10,7 +10,7 @@
  * увидит) и удаляются всегда, даже при падении.
  */
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -58,6 +58,7 @@ const SCRIPTS = {
   conventions: 'check-conventions.mjs',
   phrases: 'check-phrases.mjs',
   budgets: 'check-budgets.mjs',
+  content: 'check-content.mjs',
 };
 
 function runCheck(which) {
@@ -118,6 +119,32 @@ try {
     results.push([
       failed && output.includes('широкий спектр'),
       'запрещённая фраза в записи работы → ловится',
+    ]);
+  }
+
+  // Пропавшая языковая версия работы (BUG-0006).
+  {
+    const file = join(ROOT, 'content/works/work-02-fence/he.mdx');
+    const before = readFileSync(file, 'utf8');
+    rmSync(file);
+    const { failed, output } = runCheck('content');
+    writeFileSync(file, before);
+    results.push([
+      failed && output.includes('нет версии'),
+      'у работы пропала языковая версия → ловится',
+    ]);
+  }
+
+  // Расхождение EDITORIAL.md и banned-phrases.json.
+  {
+    const file = join(ROOT, 'EDITORIAL.md');
+    const before = readFileSync(file, 'utf8');
+    writeFileSync(file, before.replace('«богатый опыт» · ', ''));
+    const { failed, output } = runCheck('phrases');
+    writeFileSync(file, before);
+    results.push([
+      failed && output.includes('не содержит фразу из JSON'),
+      'EDITORIAL.md разошёлся с banned-phrases.json → ловится',
     ]);
   }
 

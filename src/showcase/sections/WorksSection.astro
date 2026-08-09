@@ -1,0 +1,82 @@
+---
+/**
+ * Раздел витрины: карточки, собранные из НАСТОЯЩЕГО контента.
+ *
+ * Что делает: берёт записи через репозиторий и рендерит их карточкой из F1.
+ * Это проверка всей цепочки разом: content/works → схема → репозиторий →
+ * компонент. Демонстрационные props предыдущего раздела такой цепочки не трогают.
+ * Вход: нет. Выход: раздел. Кто использует: `src/showcase/index.astro`.
+ *
+ * Все записи сейчас демонстрационные (бриф §13), поэтому каждая карточка несёт
+ * маркер «демо-данные» — спутать с работой мастера невозможно.
+ */
+import Specimen from '../Specimen.astro';
+import WorkCard from '../../components/WorkCard.astro';
+import { getWorks } from '../../data/works';
+import { getDictionary } from '../../data/dictionary';
+import { LOCALES } from '../../config/site';
+
+const shown = await Promise.all(
+  LOCALES.map(async (locale) => ({
+    locale,
+    dict: getDictionary(locale),
+    works: await getWorks(locale),
+  })),
+);
+---
+
+<Specimen
+  title="Карточки из настоящего контента"
+  note="Данные приходят из content/works через схему и репозиторий. Все записи демонстрационные — каждая помечена, и check:freeze не выпустит релиз, пока хоть одна жива."
+>
+  <div class="locales">
+    {
+      shown.map(({ locale, dict, works }) => (
+        <section class="locale" dir={locale === 'he' ? 'rtl' : 'ltr'} lang={locale}>
+          <h3 class="locale__title">{locale}</h3>
+          <div class="cards">
+            {works.map((work) => (
+              <WorkCard
+                title={work.data.title}
+                city={work.data.city}
+                year={work.data.year}
+                unitLabels={dict.units}
+                material={dict.materials[work.data.material]}
+                demoLabel={work.data.demo ? dict.demo.badge : undefined}
+                photo={{
+                  src: work.data.photos[0]!.src.src,
+                  width: work.data.photos[0]!.src.width,
+                  height: work.data.photos[0]!.src.height,
+                  alt: work.data.photos[0]!.alt,
+                }}
+                metrics={work.data.metrics}
+              />
+            ))}
+          </div>
+        </section>
+      ))
+    }
+  </div>
+</Specimen>
+
+<style>
+  .locales {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .locale__title {
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1rem;
+  }
+</style>

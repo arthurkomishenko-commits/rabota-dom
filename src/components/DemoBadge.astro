@@ -1,0 +1,53 @@
+---
+/**
+ * Маркер демо-данных.
+ *
+ * Что делает: помечает запись, которой в жизни не существует (бриф §13).
+ * Вход: подпись через props. Выход: инлайновая метка.
+ * Кто использует: `WorkCard.astro`, страницы работ (F3).
+ *
+ * Заметность здесь — требование, а не вкус: спутать демо с реальной работой
+ * мастера должно быть невозможно ни на живой странице, ни на скриншоте.
+ * Поэтому метка не приглушается, не прячется на hover и не уезжает в угол.
+ * Исчезнет она вместе с демо-контентом — `check:freeze` не выпустит релиз,
+ * пока жива хоть одна такая запись.
+ */
+interface Props {
+  label: string;
+}
+
+const { label } = Astro.props;
+---
+
+<p class="demo" role="note">{label}</p>
+
+<style>
+  .demo {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--accent-text);
+    color: var(--surface);
+    padding-block: 0.375rem;
+    padding-inline: 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-radius: var(--radius-base);
+  }
+
+  /* Диагональная штриховка: узнаётся как «служебное» без чтения текста. */
+  .demo::before {
+    content: '';
+    inline-size: 1.25rem;
+    block-size: 0.75rem;
+    flex: none;
+    background: repeating-linear-gradient(
+      45deg,
+      var(--surface) 0 2px,
+      transparent 2px 5px
+    );
+  }
+</style>

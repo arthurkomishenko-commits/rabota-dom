@@ -26,6 +26,7 @@ const TARGETS = [
 ];
 
 const SELF_EXEMPT = new Set(['scripts/check-phrases.mjs', 'scripts/banned-phrases.json']);
+// EDITORIAL.md намеренно содержит список целиком — он сверяется, а не сканируется.
 
 function walk(dir, match) {
   const out = [];
@@ -41,6 +42,45 @@ function walk(dir, match) {
     else if (match.test(entry)) out.push(full);
   }
   return out;
+}
+
+/**
+ * Сверка человеческого документа с машинным списком.
+ * EDITORIAL.md держит те же фразы для чтения; расхождение означает, что кто-то
+ * правил один источник и забыл второй — а это ровно тот тихий разъезд,
+ * из-за которого правило перестаёт работать незаметно.
+ */
+function checkEditorialSync() {
+  const editorial = readFileSync(join(ROOT, 'EDITORIAL.md'), 'utf8');
+  const block = editorial.match(
+    /<!-- BANNED_PHRASES_START[\s\S]*?-->([\s\S]*?)<!-- BANNED_PHRASES_END -->/,
+  )?.[1];
+
+  if (!block) {
+    console.error('✗ EDITORIAL.md: блок BANNED_PHRASES_START/END не найден');
+    return true;
+  }
+
+  const listed = new Set([...block.matchAll(/[«"]([^«»"]+)[»"]/g)].map((m) => m[1].trim()));
+  const machine = new Set(
+    Object.entries(PHRASES)
+      .filter(([lang]) => !lang.startsWith('_'))
+      .flatMap(([, list]) => list),
+  );
+
+  const missing = [...machine].filter((p) => !listed.has(p));
+  const extra = [...listed].filter((p) => !machine.has(p));
+
+  for (const p of missing) console.error(`✗ EDITORIAL.md не содержит фразу из JSON: «${p}»`);
+  for (const p of extra) console.error(`✗ EDITORIAL.md содержит фразу, которой нет в JSON: «${p}»`);
+
+  if (missing.length + extra.length > 0) {
+    console.error('  Источник — scripts/banned-phrases.json; блок в EDITORIAL.md правится вместе с ним.');
+    return true;
+  }
+
+  console.log(`✓ EDITORIAL.md и banned-phrases.json совпадают (${machine.size} фраз)`);
+  return false;
 }
 
 const problems = [];
@@ -67,15 +107,19 @@ for (const target of TARGETS) {
   }
 }
 
-if (problems.length > 0) {
+const desynced = checkEditorialSync();
+
+if (problems.length > 0 || desynced) {
   for (const p of problems) {
     console.error(`${p.rel}:${p.lineNo}  запрещённая фраза [${p.lang}]: «${p.phrase}»`);
     console.error(`    ${p.text}`);
   }
-  console.error(
-    `\nЗапрещённых фраз: ${problems.length}.\n` +
-      'Текст возвращается на переработку по EDITORIAL.md — список не правится ради прохождения.',
-  );
+  if (problems.length > 0) {
+    console.error(
+      `\nЗапрещённых фраз: ${problems.length}.\n` +
+        'Текст возвращается на переработку по EDITORIAL.md — список не правится ради прохождения.',
+    );
+  }
   process.exit(1);
 }
 

@@ -49,12 +49,12 @@ function imageSize(file) {
     }
   }
 
-  if (b.slice(1, 4).toString() === 'PNG') {
+  if (b.subarray(1, 4).toString() === 'PNG') {
     return { width: b.readUInt32BE(16), height: b.readUInt32BE(20) };
   }
 
-  if (b.slice(8, 12).toString() === 'WEBP') {
-    const kind = b.slice(12, 16).toString();
+  if (b.subarray(8, 12).toString() === 'WEBP') {
+    const kind = b.subarray(12, 16).toString();
     if (kind === 'VP8X') return { width: b.readUIntLE(24, 3) + 1, height: b.readUIntLE(27, 3) + 1 };
     if (kind === 'VP8 ') return { width: b.readUInt16LE(26) & 0x3fff, height: b.readUInt16LE(28) & 0x3fff };
     if (kind === 'VP8L') {

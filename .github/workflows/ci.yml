@@ -47,6 +47,9 @@ jobs:
       - name: Запрещённые фразы
         run: npm run check:phrases
 
+      - name: Целостность контента
+        run: npm run check:content
+
       - name: Самотест проверок
         run: npm run check:selftest
 

@@ -32,6 +32,10 @@ export type Dictionary = {
     toLight: string;
     toDark: string;
   };
+  /** Маркер демо-данных (бриф §13). Исчезнет вместе с демо-контентом. */
+  demo: { badge: string };
+  /** Материалы: в данных — код, у человека — слово на его языке. */
+  materials: { wood: string; metal: string; combo: string };
   scaffold: {
     title: string;
     heading: string;
@@ -51,6 +55,8 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       toLight: 'מצב בהיר',
       toDark: 'מצב כהה',
     },
+    demo: { badge: 'נתוני הדגמה' },
+    materials: { wood: 'עץ', metal: 'מתכת', combo: 'משולב' },
     scaffold: {
       title: 'Rabota Dom — שלד טכני',
       heading: 'שלד טכני',
@@ -68,6 +74,8 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       toLight: 'Светлая тема',
       toDark: 'Тёмная тема',
     },
+    demo: { badge: 'Демо-данные' },
+    materials: { wood: 'Дерево', metal: 'Металл', combo: 'Комбо' },
     scaffold: {
       title: 'Rabota Dom — технический каркас',
       heading: 'Технический каркас',
@@ -85,6 +93,8 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       toLight: 'Light theme',
       toDark: 'Dark theme',
     },
+    demo: { badge: 'Demo data' },
+    materials: { wood: 'Wood', metal: 'Metal', combo: 'Combo' },
     scaffold: {
       title: 'Rabota Dom — technical scaffold',
       heading: 'Technical scaffold',

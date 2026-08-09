@@ -16,6 +16,7 @@
  */
 import MaterialTag from './MaterialTag.astro';
 import TechnicalValue from './TechnicalValue.astro';
+import DemoBadge from './DemoBadge.astro';
 import type { TechnicalValue as TechnicalValueData } from '../data/schemas/technical';
 import type { UnitLabels } from '../lib/technical';
 
@@ -39,6 +40,8 @@ interface Props {
   href?: string;
   /** Приглушать фото в тёмной теме. В hero и сборках — запрещено (DEC-0005). */
   dim?: boolean;
+  /** Подпись маркера демо-данных. Есть подпись — есть маркер (бриф §13). */
+  demoLabel?: string;
 }
 
 const {
@@ -51,6 +54,7 @@ const {
   metrics = [],
   href,
   dim = true,
+  demoLabel,
 } = Astro.props;
 
 // Пустая метрика не рендерится вообще (бриф §4). Значение теперь структура,
@@ -71,6 +75,7 @@ const Tag = href ? 'a' : 'div';
         loading="lazy"
       />
       <figcaption class="card__tag"><MaterialTag>{material}</MaterialTag></figcaption>
+      {demoLabel && <div class="card__demo"><DemoBadge label={demoLabel} /></div>}
     </figure>
 
     <div class="card__body">
@@ -144,6 +149,13 @@ const Tag = href ? 'a' : 'div';
     inset-inline-start: 0.75rem;
     /* Тег поверх фото, но заведомо ниже портретов и оверлеев (бриф §8: слои ≥50). */
     z-index: 20;
+  }
+
+  .card__demo {
+    position: absolute;
+    inset-block-start: 0.75rem;
+    inset-inline-start: 0.75rem;
+    z-index: 30;
   }
 
   .card__body {
