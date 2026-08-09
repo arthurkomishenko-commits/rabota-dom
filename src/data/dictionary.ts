@@ -75,6 +75,32 @@ export type Dictionary = {
     updated: string;
   };
 
+  /** Типы работ: в данных — код, у человека — слово. */
+  types: { pergola: string; canopy: string; fence: string };
+
+  /** Портфолио: список, фильтры, страница паспорта. */
+  portfolio: {
+    title: string;
+    intro: string;
+    empty: string;
+    filters: string;
+    filterAll: string;
+    filterType: string;
+    filterMaterial: string;
+    filterCity: string;
+    found: string;
+    reset: string;
+    hardPart: string;
+    photos: string;
+    openPhoto: string;
+    closeLightbox: string;
+    prevPhoto: string;
+    nextPhoto: string;
+    duration: string;
+    otherWorks: string;
+    backToList: string;
+  };
+
   /** Страница 404. */
   notFound: { title: string; body: string; toHome: string };
   scaffold: {
@@ -98,6 +124,28 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     },
     demo: { badge: 'נתוני הדגמה' },
     materials: { wood: 'עץ', metal: 'מתכת', combo: 'משולב' },
+    types: { pergola: 'פרגולה', canopy: 'קירוי', fence: 'גדר' },
+    portfolio: {
+      title: 'עבודות',
+      intro: 'כל עבודה עם מידות, חומר וזמן ביצוע. בלי מספרים שאי אפשר לבדוק.',
+      empty: 'עדיין לא העלינו עבודות לאתר. כתבו לנו — נראה תמונות בוואטסאפ.',
+      filters: 'סינון עבודות',
+      filterAll: 'הכול',
+      filterType: 'סוג',
+      filterMaterial: 'חומר',
+      filterCity: 'עיר',
+      found: 'נמצאו עבודות',
+      reset: 'איפוס סינון',
+      hardPart: 'מה היה הכי מורכב',
+      photos: 'תמונות',
+      openPhoto: 'פתיחת התמונה בגודל מלא',
+      closeLightbox: 'סגירה',
+      prevPhoto: 'התמונה הקודמת',
+      nextPhoto: 'התמונה הבאה',
+      duration: 'זמן ביצוע',
+      otherWorks: 'עבודות נוספות',
+      backToList: 'לכל העבודות',
+    },
     nav: {
       label: 'ניווט ראשי',
       home: 'דף הבית',
@@ -156,6 +204,28 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     },
     demo: { badge: 'Демо-данные' },
     materials: { wood: 'Дерево', metal: 'Металл', combo: 'Комбо' },
+    types: { pergola: 'Пергола', canopy: 'Навес', fence: 'Забор' },
+    portfolio: {
+      title: 'Работы',
+      intro: 'Каждая работа с размерами, материалом и сроком. Без цифр, которые нельзя проверить.',
+      empty: 'Работы на сайт ещё не выложены. Напишите — покажем фотографии в WhatsApp.',
+      filters: 'Фильтр работ',
+      filterAll: 'Все',
+      filterType: 'Тип',
+      filterMaterial: 'Материал',
+      filterCity: 'Город',
+      found: 'Найдено работ',
+      reset: 'Сбросить фильтр',
+      hardPart: 'Что было самым сложным',
+      photos: 'Фотографии',
+      openPhoto: 'Открыть фото в полный размер',
+      closeLightbox: 'Закрыть',
+      prevPhoto: 'Предыдущее фото',
+      nextPhoto: 'Следующее фото',
+      duration: 'Срок работ',
+      otherWorks: 'Другие работы',
+      backToList: 'Ко всем работам',
+    },
     nav: {
       label: 'Основная навигация',
       home: 'Главная',
@@ -214,6 +284,28 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     },
     demo: { badge: 'Demo data' },
     materials: { wood: 'Wood', metal: 'Metal', combo: 'Combo' },
+    types: { pergola: 'Pergola', canopy: 'Canopy', fence: 'Fence' },
+    portfolio: {
+      title: 'Work',
+      intro: 'Every project with sizes, material and time on site. No numbers you cannot verify.',
+      empty: 'Nothing is published here yet. Write to us and we will show photos on WhatsApp.',
+      filters: 'Filter the work',
+      filterAll: 'All',
+      filterType: 'Type',
+      filterMaterial: 'Material',
+      filterCity: 'City',
+      found: 'Projects found',
+      reset: 'Reset filter',
+      hardPart: 'The hard part',
+      photos: 'Photos',
+      openPhoto: 'Open the photo full size',
+      closeLightbox: 'Close',
+      prevPhoto: 'Previous photo',
+      nextPhoto: 'Next photo',
+      duration: 'Time on site',
+      otherWorks: 'Other work',
+      backToList: 'All projects',
+    },
     nav: {
       label: 'Main navigation',
       home: 'Home',

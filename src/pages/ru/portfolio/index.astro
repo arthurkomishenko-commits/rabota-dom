@@ -1,0 +1,52 @@
+---
+import PageLayout from '../../../layouts/PageLayout.astro';
+import PortfolioList from '../../../components/PortfolioList.astro';
+import { getDictionary } from '../../../data/dictionary';
+import { getWorks } from '../../../data/works';
+import { ROUTES } from '../../../config/site';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+const locale = 'ru' as const;
+const dict = getDictionary(locale);
+const t = dict.portfolio;
+const works = await getWorks(locale);
+
+const basePath = getRelativeLocaleUrl(locale, ROUTES.portfolio);
+const workHref = (slug: string) => getRelativeLocaleUrl(locale, `${ROUTES.portfolio}${slug}/`);
+---
+
+<PageLayout
+  locale={locale}
+  nav={dict.nav}
+  theme={dict.theme}
+  title={`${t.title} — Rabota Dom`}
+  description={t.intro}
+  current="portfolio"
+>
+  <section class="page">
+    <h1>{t.title}</h1>
+    <p class="page__intro">{t.intro}</p>
+    <PortfolioList works={works} dict={dict} basePath={basePath} workHref={workHref} />
+  </section>
+</PageLayout>
+
+<style>
+  .page {
+    margin-inline: auto;
+    max-inline-size: 72rem;
+    padding-inline: 1.5rem;
+    padding-block: 2.5rem;
+  }
+
+  h1 {
+    margin: 0 0 0.5rem;
+    font-size: 1.875rem;
+    font-weight: 500;
+  }
+
+  .page__intro {
+    margin: 0 0 2rem;
+    max-inline-size: var(--measure);
+    color: var(--text-muted);
+  }
+</style>

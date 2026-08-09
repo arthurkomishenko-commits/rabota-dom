@@ -1,0 +1,248 @@
+---
+/**
+ * Список работ с фильтрами.
+ *
+ * Вход: работы (уже за нужную локаль), словарь. Выход: секция со списком.
+ * Кто использует: страницы `/portfolio` всех локалей.
+ *
+ * ФИЛЬТРЫ РАБОТАЮТ БЕЗ JS. Каждый вариант — обычная ссылка с query-параметром;
+ * без скрипта видны все работы, и ни одна ссылка не ведёт в пустоту.
+ * Со скриптом фильтрация идёт на клиенте по `data-*`, состояние пишется в URL
+ * и переживает перезагрузку. Пререндерить все комбинации нельзя — их
+ * произведение растёт быстрее, чем контент.
+ *
+ * Пустой список не показывает «скоро здесь будет»: вместо него одна живая
+ * строка приглашения (бриф §1 — спокойный тон, §4 — фейков нет).
+ */
+import WorkCard from './WorkCard.astro';
+import type { Dictionary } from '../data/dictionary';
+import type { WorkEntry } from '../data/works';
+
+interface Props {
+  works: WorkEntry[];
+  dict: Dictionary;
+  /** Базовый путь списка для ссылок-фильтров. */
+  basePath: string;
+  workHref: (slug: string) => string;
+}
+
+const { works, dict, basePath, workHref } = Astro.props;
+const t = dict.portfolio;
+
+const unique = <T,>(values: T[]) => [...new Set(values)];
+
+const groups = [
+  {
+    key: 'type',
+    label: t.filterType,
+    options: unique(works.map((w) => w.data.type)).map((v) => ({
+      value: v,
+      label: dict.types[v],
+    })),
+  },
+  {
+    key: 'material',
+    label: t.filterMaterial,
+    options: unique(works.map((w) => w.data.material)).map((v) => ({
+      value: v,
+      label: dict.materials[v],
+    })),
+  },
+  {
+    key: 'city',
+    label: t.filterCity,
+    options: unique(works.map((w) => w.data.city)).map((v) => ({ value: v, label: v })),
+  },
+];
+---
+
+{
+  works.length === 0 ? (
+    <p class="empty">{t.empty}</p>
+  ) : (
+    <div class="portfolio" data-portfolio>
+      <nav class="filters" aria-label={t.filters}>
+        {groups.map((group) => (
+          <div class="filters__group" data-filter-group={group.key}>
+            <span class="filters__label">{group.label}</span>
+            <a class="filters__option" href={basePath} data-filter-value="" data-active="true">
+              {t.filterAll}
+            </a>
+            {group.options.map((option) => (
+              <a
+                class="filters__option"
+                href={`${basePath}?${group.key}=${encodeURIComponent(option.value)}`}
+                data-filter-value={option.value}
+              >
+                {option.label}
+              </a>
+            ))}
+          </div>
+        ))}
+      </nav>
+
+      <p class="found" data-found aria-live="polite">
+        {t.found}: <span data-found-count>{works.length}</span>
+      </p>
+
+      <div class="grid">
+        {works.map((work) => (
+          <article
+            class="grid__item"
+            data-work
+            data-type={work.data.type}
+            data-material={work.data.material}
+            data-city={work.data.city}
+          >
+            <WorkCard
+              title={work.data.title}
+              city={work.data.city}
+              year={work.data.year}
+              unitLabels={dict.units}
+              material={dict.materials[work.data.material]}
+              demoLabel={work.data.demo ? dict.demo.badge : undefined}
+              href={workHref(work.data.slug)}
+              photo={{
+                src: work.data.photos[0]!.src.src,
+                width: work.data.photos[0]!.src.width,
+                height: work.data.photos[0]!.src.height,
+                alt: work.data.photos[0]!.alt,
+              }}
+              metrics={work.data.metrics}
+            />
+          </article>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-portfolio]');
+  if (root) {
+    const items = Array.from(root.querySelectorAll<HTMLElement>('[data-work]'));
+    const counter = root.querySelector<HTMLElement>('[data-found-count]');
+    const groups = Array.from(root.querySelectorAll<HTMLElement>('[data-filter-group]'));
+
+    const apply = (params: URLSearchParams) => {
+      let shown = 0;
+
+      for (const item of items) {
+        const visible = groups.every((group) => {
+          const key = group.dataset.filterGroup ?? '';
+          const wanted = params.get(key);
+          return !wanted || item.dataset[key as 'type' | 'material' | 'city'] === wanted;
+        });
+        item.hidden = !visible;
+        if (visible) shown += 1;
+      }
+
+      if (counter) counter.textContent = String(shown);
+
+      for (const group of groups) {
+        const key = group.dataset.filterGroup ?? '';
+        const active = params.get(key) ?? '';
+        for (const option of group.querySelectorAll<HTMLElement>('[data-filter-value]')) {
+          const isActive = (option.dataset.filterValue ?? '') === active;
+          option.toggleAttribute('data-active', isActive);
+          // Активный вариант — не ссылка «в никуда», а текущее состояние.
+          option.setAttribute('aria-current', isActive ? 'true' : 'false');
+        }
+      }
+    };
+
+    const sync = (params: URLSearchParams, push: boolean) => {
+      apply(params);
+      const query = params.toString();
+      const url = query ? `${location.pathname}?${query}` : location.pathname;
+      if (push) history.pushState({}, '', url);
+    };
+
+    root.addEventListener('click', (event) => {
+      const link = (event.target as HTMLElement).closest<HTMLElement>('[data-filter-value]');
+      if (!link) return;
+      event.preventDefault();
+
+      const group = link.closest<HTMLElement>('[data-filter-group]');
+      const key = group?.dataset.filterGroup;
+      if (!key) return;
+
+      const params = new URLSearchParams(location.search);
+      const value = link.dataset.filterValue ?? '';
+      if (value) params.set(key, value);
+      else params.delete(key);
+      sync(params, true);
+    });
+
+    window.addEventListener('popstate', () => sync(new URLSearchParams(location.search), false));
+    sync(new URLSearchParams(location.search), false);
+  }
+</script>
+
+<style>
+  .empty {
+    margin: 0;
+    max-inline-size: var(--measure);
+    color: var(--text-muted);
+  }
+
+  .portfolio {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .filters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .filters__group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .filters__label {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    min-inline-size: 5rem;
+  }
+
+  .filters__option {
+    font-size: 0.875rem;
+    color: var(--accent-text);
+    text-decoration: none;
+    border: 1px solid var(--border-metal);
+    border-radius: var(--radius-base);
+    padding-block: 0.375rem;
+    padding-inline: 0.625rem;
+    min-block-size: 36px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .filters__option[data-active] {
+    background: var(--text-main);
+    border-color: var(--text-main);
+    color: var(--surface);
+  }
+
+  .found {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .grid__item[hidden] {
+    display: none;
+  }
+</style>

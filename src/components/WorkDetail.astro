@@ -1,0 +1,347 @@
+---
+/**
+ * Страница-«паспорт объекта»: все кадры, метрики, срок, сложное место, отзыв.
+ *
+ * Вход: запись работы и словарь. Выход: `<article>`.
+ * Кто использует: `/portfolio/[slug]` всех локалей.
+ *
+ * Лайтбокс работает БЕЗ JS: каждая миниатюра — обычная ссылка на полноразмерный
+ * файл. Со скриптом открывается `<dialog>`: нативный диалог сам держит фокус
+ * и закрывается по Esc, поэтому ловушку фокуса не пишем руками — руками её
+ * пишут неправильно.
+ *
+ * Отзыв показывается только при наличии согласия — это гарантирует схема
+ * (`consent: literal(true)`), здесь достаточно проверить наличие.
+ */
+import TechnicalValue from './TechnicalValue.astro';
+import MaterialTag from './MaterialTag.astro';
+import DemoBadge from './DemoBadge.astro';
+import type { Dictionary } from '../data/dictionary';
+import type { WorkEntry } from '../data/works';
+
+interface Props {
+  work: WorkEntry;
+  dict: Dictionary;
+  backHref: string;
+}
+
+const { work, dict, backHref } = Astro.props;
+const t = dict.portfolio;
+const data = work.data;
+---
+
+<article class="work">
+  <header class="work__head">
+    <p class="work__meta">
+      <MaterialTag>{dict.materials[data.material]}</MaterialTag>
+      <span class="work__type">{dict.types[data.type]}</span>
+    </p>
+    <h1>{data.title}</h1>
+    <p class="work__stamp">
+      <span>{data.city}</span>
+      <span aria-hidden="true">·</span>
+      <TechnicalValue value={data.year} unitLabels={dict.units} />
+    </p>
+    {data.demo && <DemoBadge label={dict.demo.badge} />}
+  </header>
+
+  <p class="work__summary">{data.summary}</p>
+
+  <dl class="work__facts">
+    {
+      data.metrics.map((metric) => (
+        <div class="work__fact">
+          <dt>{metric.label}</dt>
+          <dd><TechnicalValue value={metric.value} unitLabels={dict.units} /></dd>
+        </div>
+      ))
+    }
+    <div class="work__fact">
+      <dt>{t.duration}</dt>
+      <dd><TechnicalValue value={data.duration} unitLabels={dict.units} /></dd>
+    </div>
+  </dl>
+
+  {
+    data.hardPart && (
+      <section class="work__hard">
+        <h2>{t.hardPart}</h2>
+        <p>{data.hardPart}</p>
+      </section>
+    )
+  }
+
+  <section class="work__photos">
+    <h2>{t.photos}</h2>
+    <ul class="shots">
+      {
+        data.photos.map((photo, index) => (
+          <li>
+            <a
+              class="shots__link"
+              href={photo.src.src}
+              data-lightbox-open={index}
+              aria-label={`${t.openPhoto}: ${photo.alt}`}
+            >
+              <img
+                src={photo.src.src}
+                alt={photo.alt}
+                width={photo.src.width}
+                height={photo.src.height}
+                decoding="async"
+                loading="lazy"
+              />
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  {
+    data.review && (
+      <blockquote class="work__review">
+        <p>{data.review.text}</p>
+        <footer>{data.review.name}</footer>
+      </blockquote>
+    )
+  }
+
+  <p class="work__back"><a href={backHref}>{t.backToList}</a></p>
+</article>
+
+<dialog class="lightbox" data-lightbox aria-label={t.photos}>
+  <figure class="lightbox__figure">
+    <img data-lightbox-image src="" alt="" />
+    <figcaption data-lightbox-caption></figcaption>
+  </figure>
+  <div class="lightbox__controls">
+    <button type="button" data-lightbox-prev aria-label={t.prevPhoto}>←</button>
+    <button type="button" data-lightbox-next aria-label={t.nextPhoto}>→</button>
+    <button type="button" data-lightbox-close aria-label={t.closeLightbox}>✕</button>
+  </div>
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('[data-lightbox]');
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-lightbox-open]'));
+
+  if (dialog && links.length > 0) {
+    const image = dialog.querySelector<HTMLImageElement>('[data-lightbox-image]')!;
+    const caption = dialog.querySelector<HTMLElement>('[data-lightbox-caption]')!;
+    let index = 0;
+    let opener: HTMLElement | null = null;
+
+    const show = (next: number) => {
+      index = (next + links.length) % links.length;
+      const link = links[index]!;
+      const img = link.querySelector('img')!;
+      image.src = link.href;
+      image.alt = img.alt;
+      caption.textContent = img.alt;
+    };
+
+    for (const [i, link] of links.entries()) {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        opener = link;
+        show(i);
+        dialog.showModal();
+      });
+    }
+
+    dialog.querySelector('[data-lightbox-prev]')?.addEventListener('click', () => show(index - 1));
+    dialog.querySelector('[data-lightbox-next]')?.addEventListener('click', () => show(index + 1));
+    dialog.querySelector('[data-lightbox-close]')?.addEventListener('click', () => dialog.close());
+
+    dialog.addEventListener('keydown', (event) => {
+      // Стрелки листают. Esc обрабатывает сам <dialog>.
+      if (event.key === 'ArrowRight') show(index + 1);
+      if (event.key === 'ArrowLeft') show(index - 1);
+    });
+
+    // Клик по подложке закрывает — но только по ней, не по картинке.
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+
+    // Фокус обязан вернуться туда, откуда пришёл.
+    dialog.addEventListener('close', () => opener?.focus());
+  }
+</script>
+
+<style>
+  .work {
+    margin-inline: auto;
+    max-inline-size: 60rem;
+    padding-inline: 1.5rem;
+    padding-block: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .work__head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    align-items: flex-start;
+  }
+
+  .work__meta {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .work__type {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.875rem;
+    font-weight: 500;
+  }
+
+  h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  .work__stamp {
+    margin: 0;
+    display: flex;
+    gap: 0.4em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  .work__summary {
+    margin: 0;
+    max-inline-size: var(--measure);
+    font-size: 1.0625rem;
+  }
+
+  .work__facts {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 2rem;
+    border-block: 1px solid var(--border-metal);
+    padding-block: 1rem;
+  }
+
+  .work__fact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .work__fact dt {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .work__fact dd {
+    margin: 0;
+    font-weight: 500;
+  }
+
+  .work__hard p,
+  .work__review p {
+    margin: 0;
+    max-inline-size: var(--measure);
+  }
+
+  .shots {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .shots__link {
+    display: block;
+    border: 1px solid var(--border-metal);
+    border-radius: var(--radius-base);
+    overflow: hidden;
+  }
+
+  .shots__link img {
+    inline-size: 100%;
+    block-size: auto;
+    display: block;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+
+  .work__review {
+    margin: 0;
+    border-inline-start: 3px solid var(--accent-wood);
+    padding-inline-start: 1rem;
+  }
+
+  .work__review footer {
+    margin-block-start: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+
+  .work__back a {
+    color: var(--accent-text);
+  }
+
+  .lightbox {
+    border: none;
+    background: var(--surface);
+    color: var(--text-main);
+    max-inline-size: min(64rem, 92vw);
+    padding: 1rem;
+    border-radius: var(--radius-base);
+  }
+
+  .lightbox::backdrop {
+    background: rgb(0 0 0 / 0.72);
+  }
+
+  .lightbox__figure {
+    margin: 0;
+  }
+
+  .lightbox__figure img {
+    inline-size: 100%;
+    block-size: auto;
+    display: block;
+  }
+
+  .lightbox__figure figcaption {
+    margin-block-start: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  .lightbox__controls {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-block-start: 0.75rem;
+  }
+
+  .lightbox__controls button {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+    font: inherit;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: 1px solid var(--btn-border);
+    border-radius: var(--radius-base);
+    cursor: pointer;
+  }
+</style>

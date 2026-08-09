@@ -1,0 +1,30 @@
+---
+import PageLayout from '../../../layouts/PageLayout.astro';
+import WorkDetail from '../../../components/WorkDetail.astro';
+import { getDictionary } from '../../../data/dictionary';
+import { getWorks } from '../../../data/works';
+import { ROUTES } from '../../../config/site';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+export async function getStaticPaths() {
+  const { getWorks: load } = await import('../../../data/works');
+  const works = await load('ru');
+  return works.map((work) => ({ params: { slug: work.data.slug }, props: { work } }));
+}
+
+const locale = 'ru' as const;
+const dict = getDictionary(locale);
+const { work } = Astro.props;
+const backHref = getRelativeLocaleUrl(locale, ROUTES.portfolio);
+---
+
+<PageLayout
+  locale={locale}
+  nav={dict.nav}
+  theme={dict.theme}
+  title={`${work.data.title} — Rabota Dom`}
+  description={work.data.summary}
+  current="portfolio"
+>
+  <WorkDetail work={work} dict={dict} backHref={backHref} />
+</PageLayout>
