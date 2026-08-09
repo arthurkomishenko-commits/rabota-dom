@@ -1,0 +1,87 @@
+---
+/**
+ * Страница 404 — одна на три языка (бриф §3).
+ *
+ * GitHub Pages отдаёт один и тот же файл для любого несуществующего адреса,
+ * поэтому выбрать язык на сборке нельзя: адрес известен только в браузере.
+ * Разметка содержит все три версии, скрипт оставляет подходящую по префиксу
+ * пути, а если скрипта нет — остаётся ивритская, язык сайта по умолчанию.
+ *
+ * Единственная страница без `noindex`: её и так не индексируют, а помечать
+ * робота на 404 бессмысленно. Исключение зафиксировано в `check:surface`.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getDictionary } from '../data/dictionary';
+import { LOCALES, LOCALE_DIR, ROUTES } from '../config/site';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+const variants = LOCALES.map((locale) => ({
+  locale,
+  dir: LOCALE_DIR[locale],
+  home: getRelativeLocaleUrl(locale, ROUTES.home),
+  t: getDictionary(locale).notFound,
+}));
+---
+
+<BaseLayout locale="he" title="404" noindex={false}>
+  <main class="notfound">
+    {
+      variants.map((variant) => (
+        <section class="notfound__variant" lang={variant.locale} dir={variant.dir} data-locale={variant.locale}>
+          <p class="notfound__code" dir="ltr">404</p>
+          <h1>{variant.t.title}</h1>
+          <p>{variant.t.body}</p>
+          <a class="notfound__home" href={variant.home}>{variant.t.toHome}</a>
+        </section>
+      ))
+    }
+  </main>
+</BaseLayout>
+
+<script>
+  // Язык берём из адреса: /ru/... → ru, /en/... → en, иначе иврит.
+  const path = location.pathname;
+  const locale = /\/ru(\/|$)/.test(path) ? 'ru' : /\/en(\/|$)/.test(path) ? 'en' : 'he';
+
+  document.querySelectorAll<HTMLElement>('[data-locale]').forEach((node) => {
+    if (node.dataset.locale !== locale) node.remove();
+  });
+
+  const root = document.documentElement;
+  root.lang = locale;
+  root.dir = locale === 'he' ? 'rtl' : 'ltr';
+</script>
+
+<style>
+  .notfound {
+    margin-inline: auto;
+    max-inline-size: var(--measure);
+    padding-inline: 1.5rem;
+    padding-block: 4rem;
+  }
+
+  .notfound__variant + .notfound__variant {
+    margin-block-start: 3rem;
+    border-block-start: 1px solid var(--border-metal);
+    padding-block-start: 3rem;
+  }
+
+  .notfound__code {
+    margin: 0 0 0.5rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--text-muted);
+  }
+
+  h1 {
+    margin: 0 0 0.75rem;
+    font-size: 1.75rem;
+    font-weight: 500;
+  }
+
+  .notfound__home {
+    display: inline-block;
+    margin-block-start: 1.25rem;
+    color: var(--accent-text);
+    text-underline-offset: 0.25em;
+  }
+</style>

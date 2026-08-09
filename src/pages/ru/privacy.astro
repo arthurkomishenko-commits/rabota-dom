@@ -1,0 +1,27 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import LegalPage from '../../components/LegalPage.astro';
+import { getDictionary } from '../../data/dictionary';
+
+const locale = 'ru' as const;
+const dict = getDictionary(locale);
+const t = dict.legal;
+
+const sections = [
+  { heading: t.privacyWhat, body: t.privacyWhatBody },
+  { heading: t.privacyWhy, body: t.privacyWhyBody },
+  { heading: t.privacyKeep, body: t.privacyKeepBody },
+  { heading: t.privacyReviews, body: t.privacyReviewsBody },
+  { heading: t.privacyRights, body: t.privacyRightsBody },
+];
+---
+
+<PageLayout locale={locale} nav={dict.nav} theme={dict.theme} title={t.privacyTitle} description={t.privacyIntro} current="privacy">
+  <LegalPage
+    title={t.privacyTitle}
+    intro={t.privacyIntro}
+    sections={sections}
+    updatedLabel={t.updated}
+    updatedDate="2026-08-10"
+  />
+</PageLayout>

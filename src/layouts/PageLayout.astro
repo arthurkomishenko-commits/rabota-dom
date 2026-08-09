@@ -1,0 +1,71 @@
+---
+/**
+ * Каркас обычной страницы: шапка, содержимое, подвал, ссылка «к содержимому».
+ *
+ * Вход: локаль, заголовок, описание, ключ маршрута. Выход: полная страница.
+ * Кто использует: все страницы в `src/pages/`.
+ *
+ * Отдельный слой поверх `BaseLayout`: тот отвечает за документ (lang, hreflang,
+ * каскад темы, шрифты), этот — за обвязку страницы. Витрина и `/admin`
+ * пользуются только BaseLayout, поэтому шапка на них не появляется.
+ */
+import BaseLayout from './BaseLayout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import type { Dictionary } from '../data/dictionary';
+import type { ROUTES, Locale } from '../config/site';
+
+interface Props {
+  locale: Locale;
+  title: string;
+  description?: string;
+  current?: keyof typeof ROUTES;
+  noindex?: boolean;
+  /**
+   * Словарь приходит props'ом, а не импортом: слой layouts не имеет права
+   * знать, откуда берутся данные (ARCHITECTURE_PRINCIPLES §2). Поймано
+   * проверкой границ при первой же попытке импортировать напрямую.
+   */
+  nav: Dictionary['nav'];
+  theme: Dictionary['theme'];
+}
+
+const { locale, title, description, current, noindex = true, nav, theme } = Astro.props;
+---
+
+<BaseLayout locale={locale} title={title} description={description} noindex={noindex}>
+  <a class="skip" href="#main">{nav.skipToContent}</a>
+  <SiteHeader locale={locale} nav={nav} theme={theme} current={current} />
+  <main id="main" tabindex="-1">
+    <slot />
+  </main>
+  <SiteFooter locale={locale} nav={nav} />
+</BaseLayout>
+
+<style>
+  /**
+   * Ссылка видна только при клавиатурном фокусе. Не `display: none` —
+   * скрытый таким образом элемент недостижим и с клавиатуры тоже.
+   */
+  .skip {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    transform: translateY(-120%);
+    z-index: 100;
+    background: var(--surface);
+    color: var(--text-main);
+    border: 1px solid var(--border-metal);
+    padding-block: 0.75rem;
+    padding-inline: 1rem;
+    text-decoration: none;
+  }
+
+  .skip:focus-visible {
+    transform: translateY(0);
+  }
+
+  main:focus {
+    outline: none;
+  }
+</style>

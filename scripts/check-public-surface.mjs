@@ -54,8 +54,13 @@ function fixtureSlugs() {
   return [...new Set(slugs)];
 }
 
-/** Страницы, которые обязаны нести noindex до Content Freeze (DEC-0006). */
-const MUST_BE_NOINDEX = ['index.html', 'ru/index.html', 'en/index.html', 'admin/index.html'];
+/**
+ * До Content Freeze noindex обязаны нести ВСЕ страницы (DEC-0006).
+ * Раньше здесь был список из четырёх файлов — он бы молча пропустил каждую
+ * новую страницу F3. Проверяем то, что реально лежит в dist, а не то,
+ * что помнил автор списка (урок BUG-0006: полнота набора проверяется явно).
+ */
+const NOINDEX_EXEMPT = new Set(['404.html']);
 
 if (!existsSync(DIST)) {
   console.error('dist/ не найден — сначала соберите проект.');
@@ -89,13 +94,12 @@ for (const slug of fixtureSlugs()) {
   }
 }
 
-for (const page of MUST_BE_NOINDEX) {
-  const full = join(DIST, page);
-  if (!existsSync(full)) {
-    problems.push(`ожидалась страница dist/${page}, её нет`);
-    continue;
-  }
-  if (!readFileSync(full, 'utf8').includes('name="robots"')) {
+const pages = files.filter((f) => f.endsWith('.html'));
+if (pages.length === 0) problems.push('в dist нет ни одной страницы');
+
+for (const page of pages) {
+  if (NOINDEX_EXEMPT.has(page)) continue;
+  if (!readFileSync(join(DIST, page), 'utf8').includes('name="robots"')) {
     problems.push(`dist/${page} без noindex — до Content Freeze сайт staging (DEC-0006)`);
   }
 }
@@ -106,4 +110,6 @@ if (problems.length > 0) {
   process.exit(1);
 }
 
-console.log(`✓ публичный контур: ${files.length} файлов, витрины нет, noindex на месте`);
+console.log(
+  `✓ публичный контур: ${files.length} файлов, страниц ${pages.length}, витрины нет, noindex на месте`,
+);

@@ -1,0 +1,77 @@
+---
+/**
+ * Подвал: юридические ссылки и дескриптор.
+ *
+ * Вход: локаль и словарь навигации. Выход: `<footer>`.
+ * Кто использует: `src/layouts/PageLayout.astro`.
+ */
+import { ROUTES, type Locale } from '../config/site';
+import type { Dictionary } from '../data/dictionary';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+interface Props {
+  locale: Locale;
+  nav: Dictionary['nav'];
+}
+
+const { locale, nav } = Astro.props;
+const links = [
+  { key: 'privacy' as const, label: nav.privacy },
+  { key: 'accessibility' as const, label: nav.accessibility },
+];
+---
+
+<footer class="footer">
+  <div class="footer__inner">
+    <p class="footer__descriptor">{nav.brandDescriptor}</p>
+    <ul class="footer__links">
+      {
+        links.map((link) => (
+          <li>
+            <a href={getRelativeLocaleUrl(locale, ROUTES[link.key])}>{link.label}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-block-start: 1px solid var(--border-metal);
+    margin-block-start: 4rem;
+  }
+
+  .footer__inner {
+    margin-inline: auto;
+    max-inline-size: 72rem;
+    padding-inline: 1.5rem;
+    padding-block: 1.5rem 2.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2rem;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .footer__descriptor {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    max-inline-size: var(--measure);
+  }
+
+  .footer__links {
+    display: flex;
+    gap: 1.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.875rem;
+  }
+
+  .footer__links a {
+    color: var(--accent-text);
+    text-underline-offset: 0.2em;
+  }
+</style>

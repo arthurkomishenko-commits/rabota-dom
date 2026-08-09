@@ -1,0 +1,92 @@
+---
+/**
+ * Разметка юридической страницы: заголовок, вступление, разделы.
+ *
+ * Вход: заголовок, вступление, разделы и дата обновления — всё через props.
+ * Выход: содержимое страницы. Кто использует: `/privacy`, `/accessibility`.
+ *
+ * Обобщение появилось на ВТОРОЙ странице такого вида (§1), не раньше.
+ * Тексты сюда приходят готовыми: компонент ничего не формулирует.
+ */
+interface Section {
+  heading: string;
+  body: string;
+}
+
+interface Props {
+  title: string;
+  intro: string;
+  sections: Section[];
+  note?: string;
+  updatedLabel: string;
+  updatedDate: string;
+}
+
+const { title, intro, sections, note, updatedLabel, updatedDate } = Astro.props;
+---
+
+<article class="legal">
+  <h1>{title}</h1>
+  <p class="legal__intro">{intro}</p>
+
+  {
+    sections.map((section) => (
+      <section class="legal__section">
+        <h2>{section.heading}</h2>
+        <p>{section.body}</p>
+      </section>
+    ))
+  }
+
+  {note && <p class="legal__note">{note}</p>}
+
+  <p class="legal__updated">
+    {updatedLabel}: <time datetime={updatedDate} dir="ltr">{updatedDate}</time>
+  </p>
+</article>
+
+<style>
+  .legal {
+    margin-inline: auto;
+    max-inline-size: var(--measure);
+    padding-inline: 1.5rem;
+    padding-block: 2.5rem;
+  }
+
+  h1 {
+    margin: 0 0 1rem;
+    font-size: 1.75rem;
+    font-weight: 500;
+  }
+
+  h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  .legal__intro {
+    margin: 0 0 2rem;
+    color: var(--text-muted);
+  }
+
+  .legal__section {
+    margin-block-end: 1.75rem;
+  }
+
+  .legal__section p {
+    margin: 0;
+  }
+
+  .legal__note {
+    border-block-start: 1px solid var(--border-metal);
+    padding-block-start: 1.25rem;
+    margin-block: 0 1.25rem;
+  }
+
+  .legal__updated {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+</style>

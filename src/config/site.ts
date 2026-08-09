@@ -48,6 +48,40 @@ export const LOCALE_LABEL: Record<Locale, string> = {
 };
 
 /**
+ * Карта маршрутов сайта (бриф §3). Один источник путей: страницы, навигация,
+ * hreflang и sitemap берут адреса отсюда, а не пишут строками по месту.
+ * Локализация — через `astro:i18n`, который сам добавит base и префикс языка.
+ */
+export const ROUTES = {
+  home: '/',
+  portfolio: '/portfolio/',
+  services: '/services/',
+  pergolas: '/pergolas/',
+  canopies: '/canopies/',
+  fences: '/fences/',
+  calculator: '/calculator/',
+  map: '/map/',
+  about: '/about/',
+  contact: '/contact/',
+  privacy: '/privacy/',
+  accessibility: '/accessibility/',
+} as const;
+
+export type RouteKey = keyof typeof ROUTES;
+
+/**
+ * Порядок главного меню. Отдельно от карты маршрутов: не всё, что существует,
+ * попадает в навигацию — калькулятор скрыт, пока ставки в draft (бриф §6),
+ * карта скрыта, пока точек меньше шести (бриф §5).
+ */
+export const NAV_ORDER = [
+  'portfolio',
+  'services',
+  'about',
+  'contact',
+] as const satisfies readonly RouteKey[];
+
+/**
  * Пути (без base), которые не входят в языковую матрицу — бриф §2, §9.
  * `/__ui` — витрина компонентов; в production-сборке её маршрута не существует
  * вовсе (DEC-0011), запись здесь страхует локальные и showcase-сборки.
