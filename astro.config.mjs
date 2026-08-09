@@ -2,6 +2,8 @@
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 
+import mdx from '@astrojs/mdx';
+
 /**
  * ЕДИНСТВЕННОЕ МЕСТО, где живут адрес сайта и базовый путь.
  *
@@ -54,7 +56,7 @@ export default defineConfig({
       prefixDefaultLocale: false,
     },
   },
-  integrations: [uiShowcase()],
+  integrations: [uiShowcase(), mdx()],
   vite: {
     plugins: [tailwindcss()],
   },

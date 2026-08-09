@@ -1,10 +1,12 @@
 /**
  * Бюджеты ассетов. Падает — билд в CI красный (бриф §10, протокол §9).
  *
- * F0: только сабсеты шрифта (≤40 КБ каждый) — это критерий гейта F0.
- * Дальше сюда добавляются бюджеты изображений (sharp, F2–F3) и JS.
+ * F0: сабсеты шрифта (≤40 КБ каждый) — критерий гейта F0.
+ * F2: оригиналы фотографий работ — 1600–2400px по длинной стороне, ≤1.5 МБ
+ *     (DEC-0013). Нижняя граница — чтобы хватило на retina-карточку, верхняя —
+ *     чтобы в git не оседал мёртвый вес, который всё равно ужмётся при сборке.
  */
-import { readdirSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -24,6 +26,100 @@ const BUDGETS = [
     ],
   },
 ];
+
+/**
+ * Размеры картинки из заголовка файла — без зависимостей.
+ * Поддержаны форматы, которые реально кладут в паспорта: JPEG, PNG, WebP.
+ */
+function imageSize(file) {
+  const b = readFileSync(file);
+
+  if (b[0] === 0xff && b[1] === 0xd8) {
+    let i = 2;
+    while (i < b.length) {
+      if (b[i] !== 0xff) {
+        i += 1;
+        continue;
+      }
+      const marker = b[i + 1];
+      if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker)) {
+        return { height: b.readUInt16BE(i + 5), width: b.readUInt16BE(i + 7) };
+      }
+      i += 2 + b.readUInt16BE(i + 2);
+    }
+  }
+
+  if (b.slice(1, 4).toString() === 'PNG') {
+    return { width: b.readUInt32BE(16), height: b.readUInt32BE(20) };
+  }
+
+  if (b.slice(8, 12).toString() === 'WEBP') {
+    const kind = b.slice(12, 16).toString();
+    if (kind === 'VP8X') return { width: b.readUIntLE(24, 3) + 1, height: b.readUIntLE(27, 3) + 1 };
+    if (kind === 'VP8 ') return { width: b.readUInt16LE(26) & 0x3fff, height: b.readUInt16LE(28) & 0x3fff };
+    if (kind === 'VP8L') {
+      const n = b.readUInt32LE(21);
+      return { width: (n & 0x3fff) + 1, height: ((n >> 14) & 0x3fff) + 1 };
+    }
+  }
+
+  return null;
+}
+
+/** Оригиналы фотографий работ (DEC-0013). */
+function checkWorkPhotos() {
+  const root = join(ROOT, 'content/works');
+  const MIN_SIDE = 1600;
+  const MAX_SIDE = 2400;
+  const MAX_KB = 1536;
+  let bad = false;
+  let count = 0;
+
+  const walk = (dir) => {
+    let entries;
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) {
+        walk(full);
+        continue;
+      }
+      if (!/\.(jpe?g|png|webp)$/i.test(entry)) continue;
+
+      count += 1;
+      const kb = statSync(full).size / 1024;
+      const size = imageSize(full);
+      const rel = full.slice(ROOT.length + 1);
+
+      if (!size) {
+        bad = true;
+        console.error(`✗ ${rel} — не удалось прочитать размеры`);
+        continue;
+      }
+
+      const long = Math.max(size.width, size.height);
+      const problems = [];
+      if (long < MIN_SIDE) problems.push(`длинная сторона ${long} < ${MIN_SIDE}`);
+      if (long > MAX_SIDE) problems.push(`длинная сторона ${long} > ${MAX_SIDE}`);
+      if (kb > MAX_KB) problems.push(`${kb.toFixed(0)} КБ > ${MAX_KB} КБ`);
+
+      if (problems.length > 0) {
+        bad = true;
+        console.error(`✗ ${rel} — ${problems.join(', ')}`);
+      } else {
+        console.log(`✓ ${rel.padEnd(50)} ${long}px, ${kb.toFixed(0)} КБ`);
+      }
+    }
+  };
+
+  walk(root);
+  if (count === 0) console.log('· фотографий работ пока нет — проверять нечего');
+  return bad;
+}
 
 let failed = false;
 
@@ -50,6 +146,8 @@ for (const budget of BUDGETS) {
     }
   }
 }
+
+if (checkWorkPhotos()) failed = true;
 
 if (failed) {
   console.error('\nБюджеты нарушены — сборка остановлена.');

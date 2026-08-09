@@ -1,0 +1,27 @@
+---
+/**
+ * Единственное место, где технические значения превращаются в разметку.
+ *
+ * Что делает: форматирует значение и оборачивает его в изолированный
+ * LTR-прогон. Вход: значение и подписи единиц. Выход: `<bdi>`.
+ * Кто использует: `WorkCard.astro` и всё, что показывает размеры, сроки,
+ * профили, крепёж, годы.
+ *
+ * ПОЧЕМУ ОДНО МЕСТО — BUG-0005. В RTL строка `100×50` без изоляции
+ * отображается как `50×100`: `×` нейтральный, алгоритм bidi разрешает его
+ * в направление абзаца и переставляет числовые прогоны. Значение меняет смысл.
+ * Ручные обёртки `bdi` по месту ЗАПРЕЩЕНЫ: их однажды забудут поставить.
+ * Правило проверяется машинно — `npm run check:conventions`.
+ */
+import { formatTechnical, type UnitLabels } from '../lib/technical';
+import type { TechnicalValue } from '../data/schemas/technical';
+
+interface Props {
+  value: TechnicalValue;
+  unitLabels: UnitLabels;
+}
+
+const { value, unitLabels } = Astro.props;
+---
+
+<bdi dir="ltr">{formatTechnical(value, unitLabels)}</bdi>

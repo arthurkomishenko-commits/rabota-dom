@@ -44,6 +44,9 @@ jobs:
       - name: Контраст AA
         run: npm run check:contrast
 
+      - name: Запрещённые фразы
+        run: npm run check:phrases
+
       - name: Самотест проверок
         run: npm run check:selftest
 

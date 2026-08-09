@@ -97,12 +97,25 @@ const LAYER_RULES = [
   },
 ];
 
+/**
+ * `<bdi>` разрешён ровно в одном файле — там, где живёт рендер технических
+ * значений. Ручные обёртки по месту запрещены (BUG-0005, манифест 03 шаг 3):
+ * их однажды забудут поставить, и `100×50` снова станет `50×100`.
+ */
+const BDI_OWNER = 'src/components/TechnicalValue.astro';
+
 /** URL-пространство, зарезервированное на будущее (§4). Занимать нельзя. */
 const RESERVED_ROUTES = ['shop', 'cart', 'pay', 'account', 'api'];
 
 function layerOf(file) {
   const rel = relative(SRC, file);
   if (rel.startsWith('..')) return null;
+
+  // Astro требует конфиг коллекций строго в src/content.config.ts. По смыслу
+  // это объявление источника данных, то есть слой `data`; расположение
+  // навязано фреймворком, а не выбрано нами.
+  if (rel === 'content.config.ts') return 'data';
+
   const parts = rel.split('/');
   if (parts[0] === 'lib' && parts[1] === 'api') return 'lib/api';
   return parts[0] ?? null;
@@ -163,6 +176,22 @@ for (const file of walk(SRC)) {
   scan(file, source, ANY_RULES, lines, 'css');
   if (ext === '.css') scan(file, source, CSS_RULES, lines, 'css');
   else if (ext === '.astro') scan(file, styleBlocksOnly(source), CSS_RULES, lines, 'css');
+
+  // `<bdi>` вне своего владельца
+  if (relative(ROOT, file) !== BDI_OWNER) {
+    scan(
+      file,
+      source,
+      [
+        {
+          pattern: /<bdi[\s>]/g,
+          message: `ручная обёртка <bdi> запрещена — используйте ${BDI_OWNER} (BUG-0005)`,
+        },
+      ],
+      lines,
+      'boundary',
+    );
+  }
 
   // Правила «разрешено только в этих слоях»
   for (const rule of LAYER_RULES) {

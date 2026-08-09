@@ -12,6 +12,9 @@ import Specimen from '../Specimen.astro';
 import MaterialTag from '../../components/MaterialTag.astro';
 import WorkCard from '../../components/WorkCard.astro';
 import photo from '../demo/pergola-aluminium.jpg?url';
+import { getDictionary } from '../../data/dictionary';
+
+const units = getDictionary('ru').units;
 
 const PHOTO = {
   src: photo,
@@ -37,19 +40,21 @@ const PHOTO = {
     <WorkCard
       title="Пергола с ламелями"
       city="Ноф-ха-Галиль"
-      year={2024}
+      year={{ kind: 'year', value: 2024 }}
+      unitLabels={units}
       material="Алюминий"
       photo={PHOTO}
       href="#work"
       metrics={[
-        { label: 'Площадь', value: '18 м²' },
-        { label: 'Профиль', value: '100×50' },
+        { label: 'Площадь', value: { kind: 'quantity', value: 18, unit: 'm2' } },
+        { label: 'Профиль', value: { kind: 'dimensions', a: 100, b: 50, unit: 'mm' } },
       ]}
     />
     <WorkCard
       title="Навес во дворе"
       city="Мигдаль-ха-Эмек"
-      year={2023}
+      year={{ kind: 'year', value: 2023 }}
+      unitLabels={units}
       material="Комбо"
       photo={PHOTO}
       metrics={[]}
@@ -57,10 +62,11 @@ const PHOTO = {
     <WorkCard
       title="Ламельнаяперголасоченьдлиннымнеразрывнымназванием"
       city="Кирьят-Тивон"
-      year={2025}
+      year={{ kind: 'year', value: 2025 }}
+      unitLabels={units}
       material="Дерево"
       photo={PHOTO}
-      metrics={[{ label: 'Длина', value: '24 пог. м' }]}
+      metrics={[{ label: 'Длина', value: { kind: 'quantity', value: 24, unit: 'lm' } }]}
     />
   </div>
 </Specimen>

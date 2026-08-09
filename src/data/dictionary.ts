@@ -18,6 +18,15 @@
 import type { Locale } from '../config/site';
 
 export type Dictionary = {
+  /** Подписи единиц измерения. Живут в словаре: это текст, а не данные. */
+  units: {
+    m: string;
+    m2: string;
+    lm: string;
+    mm: string;
+    pcs: string;
+    days: string;
+  };
   theme: {
     /** Подпись тумблера показывает, КУДА переключит нажатие. */
     toLight: string;
@@ -37,6 +46,7 @@ export type Dictionary = {
 
 const DICTIONARIES: Record<Locale, Dictionary> = {
   he: {
+    units: { m: 'מ׳', m2: 'מ״ר', lm: 'מ׳', mm: 'מ״מ', pcs: 'יח׳', days: 'ימים' },
     theme: {
       toLight: 'מצב בהיר',
       toDark: 'מצב כהה',
@@ -53,6 +63,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     },
   },
   ru: {
+    units: { m: 'м', m2: 'м²', lm: 'пог. м', mm: 'мм', pcs: 'шт', days: 'дней' },
     theme: {
       toLight: 'Светлая тема',
       toDark: 'Тёмная тема',
@@ -69,6 +80,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     },
   },
   en: {
+    units: { m: 'm', m2: 'm²', lm: 'lm', mm: 'mm', pcs: 'pcs', days: 'days' },
     theme: {
       toLight: 'Light theme',
       toDark: 'Dark theme',

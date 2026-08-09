@@ -18,6 +18,42 @@ const DIST = join(ROOT, 'dist');
 /** Маршруты, которых в публичной сборке быть не может ни при каких условиях. */
 const FORBIDDEN_ROUTES = ['__ui'];
 
+/**
+ * Слаги записей, помеченных `fixture: true`. Фикстуры существуют только для
+ * проверки схемы и не должны порождать ни одной страницы (манифест 03, шаг 8).
+ * Репозиторий `src/data/works.ts` их и так отсекает — здесь проверяется факт,
+ * а не намерение: если фильтр однажды снимут, поймает эта проверка.
+ */
+function fixtureSlugs() {
+  const root = join(ROOT, 'content/works');
+  const slugs = [];
+
+  const walk = (dir) => {
+    let entries;
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) {
+        walk(full);
+        continue;
+      }
+      if (!/\.mdx?$/.test(entry)) continue;
+
+      const source = readFileSync(full, 'utf8');
+      if (!/^fixture:\s*true\s*$/m.test(source)) continue;
+      const slug = source.match(/^slug:\s*(\S+)\s*$/m)?.[1];
+      if (slug) slugs.push(slug);
+    }
+  };
+
+  walk(root);
+  return [...new Set(slugs)];
+}
+
 /** Страницы, которые обязаны нести noindex до Content Freeze (DEC-0006). */
 const MUST_BE_NOINDEX = ['index.html', 'ru/index.html', 'en/index.html', 'admin/index.html'];
 
@@ -43,6 +79,13 @@ for (const route of FORBIDDEN_ROUTES) {
   const leaked = files.filter((f) => f.split('/').includes(route));
   for (const file of leaked) {
     problems.push(`запрещённый маршрут в публичной сборке: dist/${file}`);
+  }
+}
+
+for (const slug of fixtureSlugs()) {
+  const leaked = files.filter((f) => f.split('/').includes(slug));
+  for (const file of leaked) {
+    problems.push(`фикстура попала в публичную сборку: dist/${file} (слаг «${slug}»)`);
   }
 }
 

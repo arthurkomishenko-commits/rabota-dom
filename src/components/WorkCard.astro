@@ -15,16 +15,22 @@
  * тип придёт из `src/data/schemas/` и этот интерфейс будет заменён импортом.
  */
 import MaterialTag from './MaterialTag.astro';
+import TechnicalValue from './TechnicalValue.astro';
+import type { TechnicalValue as TechnicalValueData } from '../data/schemas/technical';
+import type { UnitLabels } from '../lib/technical';
 
 export interface WorkMetric {
   label: string;
-  value: string;
+  /** Структура, а не строка: порядок символов в RTL задаёт рендер (BUG-0005). */
+  value: TechnicalValueData;
 }
 
 interface Props {
   title: string;
   city: string;
-  year: number;
+  year: TechnicalValueData;
+  /** Подписи единиц приходят из словаря страницы — компонент не переводит. */
+  unitLabels: UnitLabels;
   /** Название материала на языке страницы. */
   material: string;
   photo: { src: string; width: number; height: number; alt: string };
@@ -35,9 +41,21 @@ interface Props {
   dim?: boolean;
 }
 
-const { title, city, year, material, photo, metrics = [], href, dim = true } = Astro.props;
+const {
+  title,
+  city,
+  year,
+  unitLabels,
+  material,
+  photo,
+  metrics = [],
+  href,
+  dim = true,
+} = Astro.props;
 
-const realMetrics = metrics.filter((m) => m.label.trim() !== '' && m.value.trim() !== '');
+// Пустая метрика не рендерится вообще (бриф §4). Значение теперь структура,
+// поэтому «пустым» может быть только отсутствие записи в массиве.
+const realMetrics = metrics.filter((m) => m.label.trim() !== '');
 const Tag = href ? 'a' : 'div';
 ---
 
@@ -60,7 +78,7 @@ const Tag = href ? 'a' : 'div';
       <p class="card__stamp">
         <span>{city}</span>
         <span aria-hidden="true">·</span>
-        <bdi dir="ltr">{year}</bdi>
+        <TechnicalValue value={year} unitLabels={unitLabels} />
       </p>
 
       {
@@ -69,13 +87,7 @@ const Tag = href ? 'a' : 'div';
             {realMetrics.map((metric) => (
               <div class="card__metric">
                 <dt>{metric.label}</dt>
-                {/*
-                  Значение изолируется как LTR-прогон (бриф §2: числа в иврите —
-                  dir="ltr"). Без этого «100×50» в RTL превращается в «50×100»:
-                  символ × нейтральный, алгоритм bidi разрешает его в направление
-                  абзаца и переставляет числа местами. BUG-0005.
-                */}
-                <dd><bdi dir="ltr">{metric.value}</bdi></dd>
+                <dd><TechnicalValue value={metric.value} unitLabels={unitLabels} /></dd>
               </div>
             ))}
           </dl>

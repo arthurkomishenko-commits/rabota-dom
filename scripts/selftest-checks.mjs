@@ -40,6 +40,9 @@ const CASES = [
   // ── check-markers (QUALITY_DOCTRINE §8) ───────────────────────────────────
   ['temp-no-dec.ts', '// TEMP пока не приехал ассет\nexport const a = 1;', 'markers', 'временное решение'],
   ['ts-ignore.ts', '// @ts-ignore\nexport const b = 1;', 'markers', 'подавление ошибки типов'],
+
+  // ── BUG-0005: ручная обёртка bdi вне своего владельца ─────────────────────
+  ['manual-bdi.astro', '<p><bdi dir="ltr">100×50</bdi></p>', 'conventions', 'ручная обёртка <bdi>'],
 ];
 
 /** Кейсы, которые обязаны ПРОЙТИ: escape-hatch'и и корректно оформленная времянка. */
@@ -50,8 +53,15 @@ const ALLOWED_CASES = [
 
 const results = [];
 
+const SCRIPTS = {
+  markers: 'check-markers.mjs',
+  conventions: 'check-conventions.mjs',
+  phrases: 'check-phrases.mjs',
+  budgets: 'check-budgets.mjs',
+};
+
 function runCheck(which) {
-  const script = which === 'markers' ? 'check-markers.mjs' : 'check-conventions.mjs';
+  const script = SCRIPTS[which] ?? SCRIPTS.conventions;
   try {
     execFileSync('node', [join(ROOT, 'scripts', script)], { cwd: ROOT, encoding: 'utf8' });
     return { failed: false, output: '' };
@@ -94,6 +104,38 @@ try {
     results.push([
       failed && output.includes('components → data'),
       'components → data (не type-import) → ловится правилом направления',
+    ]);
+  }
+
+  // Запрещённая фраза в записи работы (EDITORIAL.md).
+  {
+    const dir = join(ROOT, 'content/works/__selftest');
+    mkdirSync(dir, { recursive: true });
+    const probe = join(dir, 'ru.mdx');
+    writeFileSync(probe, '---\nslug: x\n---\n\nМы предлагаем вам широкий спектр услуг.\n');
+    const { failed, output } = runCheck('phrases');
+    rmSync(dir, { recursive: true, force: true });
+    results.push([
+      failed && output.includes('широкий спектр'),
+      'запрещённая фраза в записи работы → ловится',
+    ]);
+  }
+
+  // Фотография ниже нижней границы размера (DEC-0013).
+  {
+    const dir = join(ROOT, 'content/works/__selftest/photos');
+    mkdirSync(dir, { recursive: true });
+    // 1×1 PNG: заведомо меньше 1600px по длинной стороне.
+    const png = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+      'base64',
+    );
+    writeFileSync(join(dir, 'cover.png'), png);
+    const { failed, output } = runCheck('budgets');
+    rmSync(join(ROOT, 'content/works/__selftest'), { recursive: true, force: true });
+    results.push([
+      failed && output.includes('длинная сторона'),
+      'фото меньше 1600px → ловится бюджетом',
     ]);
   }
 
