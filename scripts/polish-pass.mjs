@@ -187,6 +187,118 @@ try {
       await context.close();
     }
 
+    // 6.1b Доступные имена: у каждого интерактива имя непустое (Норма А).
+    {
+      const context = await browser.newContext();
+      const tab = await context.newPage();
+      await tab.goto(url('__ui/'), { waitUntil: 'networkidle' });
+
+      const audit = await tab.evaluate(() => {
+        // Тот же порядок, что у скринридера: label → labelledby → текст → title.
+        const accessibleName = (el) => {
+          const byLabel = el.getAttribute('aria-label')?.trim();
+          if (byLabel) return byLabel;
+          // Поля формы называются элементом <label for> или обрамляющим <label>.
+          // Пропустить это — значит объявить нарушением корректную разметку.
+          if (el.id) {
+            const forLabel = document.querySelector(`label[for="${el.id}"]`)?.textContent?.trim();
+            if (forLabel) return forLabel;
+          }
+          const wrapping = el.closest('label')?.textContent?.trim();
+          if (wrapping) return wrapping;
+          const ref = el.getAttribute('aria-labelledby');
+          if (ref) {
+            const parts = ref
+              .split(/\s+/)
+              .map((id) => document.getElementById(id)?.textContent?.trim() ?? '')
+              .filter(Boolean);
+            if (parts.length) return parts.join(' ');
+          }
+          const text = el.textContent?.trim();
+          if (text) return text;
+          return el.getAttribute('title')?.trim() ?? '';
+        };
+
+        const nodes = Array.from(
+          document.querySelectorAll('a[href], button, input, select, textarea, [role="button"]'),
+        );
+        const nameless = [];
+        const doubled = [];
+
+        for (const node of nodes) {
+          const name = accessibleName(node);
+          if (!name) {
+            nameless.push(node.outerHTML.slice(0, 70));
+            continue;
+          }
+          // Двойная озвучка: описание дословно повторяет имя.
+          const described = node.getAttribute('aria-describedby');
+          if (described) {
+            const desc = described
+              .split(/\s+/)
+              .map((id) => document.getElementById(id)?.textContent?.trim() ?? '')
+              .join(' ');
+            if (desc && desc === name) doubled.push(name);
+          }
+        }
+        return { total: nodes.length, nameless, doubled };
+      });
+
+      say(
+        audit.nameless.length === 0,
+        `доступные имена · все ${audit.total} интерактивов названы`,
+        audit.nameless.length ? `без имени: ${audit.nameless.join(' | ')}` : '',
+      );
+      say(
+        audit.doubled.length === 0,
+        'доступные имена · нет двойной озвучки (описание не повторяет имя)',
+        audit.doubled.length ? audit.doubled.join(', ') : '',
+      );
+      await context.close();
+    }
+
+    // 6.1c Подсказка: клавиатура, Esc, hoverable, persistent (WCAG 1.4.13).
+    {
+      const context = await browser.newContext();
+      const tab = await context.newPage();
+      await tab.goto(url('__ui/'), { waitUntil: 'networkidle' });
+
+      const target = tab.locator('[data-tooltip] button').first();
+      await target.focus();
+      const openedOnFocus = await tab.evaluate(
+        () => document.querySelector('[data-tooltip][data-open]') !== null,
+      );
+      say(openedOnFocus, 'подсказка · открывается по клавиатурному фокусу без задержки');
+
+      await tab.waitForTimeout(1200);
+      const stillOpen = await tab.evaluate(
+        () => document.querySelector('[data-tooltip][data-open]') !== null,
+      );
+      say(stillOpen, 'подсказка · persistent: сама по таймеру не исчезает');
+
+      await tab.keyboard.press('Escape');
+      const closed = await tab.evaluate(
+        () => document.querySelector('[data-tooltip][data-open]') === null,
+      );
+      const focusKept = await tab.evaluate(
+        () => document.activeElement?.closest('[data-tooltip]') !== null,
+      );
+      say(closed, 'подсказка · dismissible: Escape закрывает');
+      say(focusKept, 'подсказка · Escape не уводит фокус с цели');
+
+      const overlap = await tab.evaluate(() => {
+        const root = document.querySelector('[data-tooltip]');
+        if (!root) return null;
+        root.setAttribute('data-open', 'true');
+        const t = root.querySelector('.tt__target').getBoundingClientRect();
+        const b = root.querySelector('.tt__bubble').getBoundingClientRect();
+        return !(b.bottom <= t.top || b.top >= t.bottom);
+      });
+      say(overlap === false, 'подсказка · не накрывает собственную цель');
+
+      await context.close();
+    }
+
     // 6.2 Узкий вьюпорт: витрина не порождает горизонтальную прокрутку,
     //     а цели sticky-панели остаются достаточно крупными.
     {

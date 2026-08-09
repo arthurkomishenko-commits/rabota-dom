@@ -1,0 +1,52 @@
+---
+/**
+ * Раздел витрины: подсказка и доступные имена (Норма А).
+ * Вход: нет. Выход: раздел. Кто использует: `src/showcase/index.astro`.
+ */
+import Specimen from '../Specimen.astro';
+import Tooltip from '../../components/Tooltip.astro';
+import Button from '../../components/Button.astro';
+---
+
+<Specimen
+  title="Подсказка (Норма А)"
+  note="Появляется по наведению и по клавиатурному фокусу. На фокус — без задержки. Esc закрывает. Курсор можно перевести на саму подсказку. Проверьте Tab и Esc."
+>
+  <div class="row">
+    <Tooltip role="description" text="Ориентир, а не смета. Точная сумма — после замера.">
+      <Button>Получить оценку</Button>
+    </Tooltip>
+
+    <Tooltip role="label" text="Открыть чертёж объекта" placement="block-end">
+      <button type="button" class="icon" aria-label="Открыть чертёж объекта">
+        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+          <path d="M3 17 L17 17 L17 3" fill="none" stroke="currentColor" stroke-width="1.5" />
+          <path d="M3 17 L14 6" fill="none" stroke="currentColor" stroke-width="1.5" />
+        </svg>
+      </button>
+    </Tooltip>
+  </div>
+</Specimen>
+
+<style>
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2rem;
+    padding-block: 2rem;
+  }
+
+  .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 44px;
+    block-size: 44px;
+    border: 1px solid var(--border-metal);
+    border-radius: var(--radius-base);
+    background: var(--surface);
+    color: var(--text-main);
+    cursor: pointer;
+  }
+</style>

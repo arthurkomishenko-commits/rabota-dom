@@ -1,0 +1,176 @@
+---
+/**
+ * Единый примитив подсказки. Норма А, бриф §14, DEC-0015.
+ *
+ * Что делает: оборачивает интерактив и показывает подсказку по наведению
+ * И по клавиатурному фокусу. Вход: текст, роль подсказки, содержимое слота.
+ * Выход: обёртка + пузырь. Кто использует: любой контрол, которому нужна
+ * поясняющая строка.
+ *
+ * ПОЧЕМУ ОДИН ПРИМИТИВ. Подсказка, работающая только на hover, недоступна
+ * с клавиатуры и с пальца — это потеря функциональности, а не украшение.
+ * Собранные здесь правила легко забыть, если каждый раз писать заново.
+ *
+ * WCAG 1.4.13 реализован буквально:
+ *  · hoverable   — курсор успевает перейти на саму подсказку (задержка скрытия);
+ *  · dismissible — Escape закрывает, не уводя фокус;
+ *  · persistent  — подсказка не исчезает сама по таймеру.
+ *
+ * Семантика без двойной озвучки (WAI-ARIA APG):
+ *  · `description` — у цели есть своё имя, подсказка дополняет (`aria-describedby`);
+ *  · `label`       — имени нет, подсказка становится именем (`aria-labelledby`).
+ * Одновременно оба режима невозможны — тип не позволит.
+ *
+ * Без JS подсказка не всплывает, но её текст остаётся в разметке: скринридер
+ * прочитает связь, зрячий пользователь ничего не теряет — критичная информация
+ * в подсказке не живёт (бриф §14).
+ */
+interface Props {
+  /** Текст подсказки. Короткий: это не абзац. */
+  text: string;
+  /**
+   * `description` — цель уже названа, подсказка уточняет.
+   * `label` — цель без видимого текста, подсказка служит именем.
+   */
+  role: 'description' | 'label';
+  /** Сторона появления по блочной оси. При нехватке места перевернётся сама. */
+  placement?: 'block-start' | 'block-end';
+}
+
+const { text, role, placement = 'block-start' } = Astro.props;
+const id = `tt-${Math.random().toString(36).slice(2, 10)}`;
+---
+
+<span class="tt" data-tooltip data-role={role} data-placement={placement} data-tooltip-id={id}>
+  <span class="tt__target"><slot /></span>
+  <span class="tt__bubble" role="tooltip" id={id}>{text}</span>
+</span>
+
+<script>
+  const SHOW_DELAY = 300; // против случайного пролёта курсором
+  const HIDE_DELAY = 120; // чтобы курсор успел дойти до самой подсказки
+
+  const FOCUSABLE =
+    'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+  document.querySelectorAll<HTMLElement>('[data-tooltip]').forEach((root) => {
+    const bubble = root.querySelector<HTMLElement>('.tt__bubble');
+    const target = root.querySelector<HTMLElement>('.tt__target')?.querySelector<HTMLElement>(FOCUSABLE);
+    const id = root.dataset.tooltipId;
+    if (!bubble || !target || !id) return;
+
+    // Связь ставится здесь, а не в разметке: цель приходит слотом, и её
+    // атрибуты снаружи недоступны. Роль выбирает вызывающий код.
+    target.setAttribute(root.dataset.role === 'label' ? 'aria-labelledby' : 'aria-describedby', id);
+
+    let showTimer: number | undefined;
+    let hideTimer: number | undefined;
+
+    const clear = () => {
+      window.clearTimeout(showTimer);
+      window.clearTimeout(hideTimer);
+    };
+
+    /**
+     * Держит пузырь внутри вьюпорта. Чистым CSS это не решается: элемент
+     * центрируется относительно цели и не знает, где край экрана.
+     */
+    const clamp = () => {
+      root.style.setProperty('--tt-shift', '0px');
+      const rect = bubble.getBoundingClientRect();
+      const margin = 8;
+      let shift = 0;
+      if (rect.left < margin) shift = margin - rect.left;
+      else if (rect.right > window.innerWidth - margin) shift = window.innerWidth - margin - rect.right;
+      if (shift !== 0) root.style.setProperty('--tt-shift', `${Math.round(shift)}px`);
+    };
+
+    const open = (immediate = false) => {
+      clear();
+      const run = () => {
+        root.setAttribute('data-open', 'true');
+        clamp();
+      };
+      if (immediate) run();
+      else showTimer = window.setTimeout(run, SHOW_DELAY);
+    };
+
+    const close = (immediate = false) => {
+      clear();
+      const run = () => root.removeAttribute('data-open');
+      if (immediate) run();
+      else hideTimer = window.setTimeout(run, HIDE_DELAY);
+    };
+
+    target.addEventListener('pointerenter', () => open());
+    target.addEventListener('pointerleave', () => close());
+    // Клавиатуре задержка не нужна: пролететь фокусом мимо нельзя.
+    target.addEventListener('focus', () => open(true));
+    target.addEventListener('blur', () => close(true));
+
+    // Курсор перешёл на саму подсказку — она обязана остаться (hoverable).
+    bubble.addEventListener('pointerenter', () => clear());
+    bubble.addEventListener('pointerleave', () => close());
+
+    // Escape закрывает, но фокус не уводит (dismissible).
+    root.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && root.hasAttribute('data-open')) {
+        event.stopPropagation();
+        close(true);
+      }
+    });
+  });
+</script>
+
+<style>
+  .tt {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .tt__bubble {
+    /**
+     * В закрытом состоянии — `display: none`, а не `visibility: hidden`.
+     * Скрытый видимостью элемент ОСТАЁТСЯ в раскладке и расширяет прокручиваемую
+     * область: на 320px пузыри уводили документ до 349px, хотя ни один не был
+     * открыт. Найдено полировкой, BUG-0008.
+     *
+     * На доступность это не влияет: по спецификации вычисления имени и описания
+     * текст элемента, на который ссылается `aria-describedby`/`aria-labelledby`,
+     * используется независимо от его видимости.
+     */
+    display: none;
+    position: absolute;
+    inset-inline-start: 50%;
+    /* Сдвиг клампа считает скрипт: чистым CSS пузырь не знает про край экрана. */
+    transform: translateX(calc(-50% + var(--tt-shift, 0px)));
+    inline-size: max-content;
+    max-inline-size: min(16rem, calc(100vw - 2rem));
+    background: var(--text-main);
+    color: var(--surface);
+    border-radius: var(--radius-base);
+    padding-block: 0.375rem;
+    padding-inline: 0.625rem;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    z-index: 60;
+  }
+
+  /* Зазор, а не наложение: подсказка не имеет права накрывать свою цель. */
+  .tt[data-placement='block-start'] .tt__bubble {
+    inset-block-end: calc(100% + 0.5rem);
+  }
+
+  .tt[data-placement='block-end'] .tt__bubble {
+    inset-block-start: calc(100% + 0.5rem);
+  }
+
+  .tt[data-open] .tt__bubble {
+    display: block;
+  }
+
+  /* В RTL центрирование идёт от противоположной оси — знак сдвига обратный. */
+  :global([dir='rtl']) .tt__bubble {
+    transform: translateX(calc(50% + var(--tt-shift, 0px)));
+  }
+</style>
