@@ -1,0 +1,359 @@
+---
+/**
+ * Главная страница: десять экранов по брифу §3.
+ *
+ * Вход: словарь, работы, адреса — через props. Выход: содержимое страницы.
+ * Кто использует: `/`, `/ru/`, `/en/`.
+ *
+ * ГЕЙТЫ ПОКАЗА — не украшение, а требование брифа:
+ *  · «последние проекты» появляются при ≥3 полных паспортах (§3);
+ *  · тизер карты — при ≥6 точках (§5);
+ *  · видео и «до/после» — только при наличии ассетов (§4).
+ * Экран без данных исчезает ЦЕЛИКОМ. Заглушки «скоро здесь будет» не бывает:
+ * пустое место выглядит недоделанным ровно там, где сайт должен выглядеть
+ * спокойным. Сейчас паспортов два — значит четыре экрана скрыты, и это норма.
+ *
+ * Hero статичный: сборка приходит в F5. Портрет мастера — ассета нет,
+ * поэтому блока портрета тоже нет.
+ */
+import Button from './Button.astro';
+import WorkCard from './WorkCard.astro';
+import type { Dictionary } from '../data/dictionary';
+import type { WorkEntry } from '../data/works';
+
+interface Props {
+  dict: Dictionary;
+  works: WorkEntry[];
+  /** Полные паспорта — по ним считается гейт «последних проектов». */
+  portfolioHref: string;
+  contactHref: string;
+  workHref: (slug: string) => string;
+  whatsappUrl: string;
+  phoneHref: string;
+  phoneDisplay: string;
+  mapPoints: number;
+  mapHref: string;
+  heroImage?: { src: string; width: number; height: number; alt: string };
+}
+
+const {
+  dict,
+  works,
+  portfolioHref,
+  contactHref,
+  workHref,
+  whatsappUrl,
+  phoneHref,
+  phoneDisplay,
+  mapPoints,
+  mapHref,
+  heroImage,
+} = Astro.props;
+
+const t = dict.home;
+
+const MIN_LATEST = 3;
+const MIN_MAP_POINTS = 6;
+
+const showLatest = works.length >= MIN_LATEST;
+const showMapTeaser = mapPoints >= MIN_MAP_POINTS;
+const steps = [dict.about.step1, dict.about.step2, dict.about.step3, dict.about.step4];
+const principles = [dict.about.principle1, dict.about.principle2, dict.about.principle3];
+---
+
+{/* ── 1. Hero ─────────────────────────────────────────────────────────── */}
+<section class="hero">
+  <div class="hero__inner">
+    <p class="hero__kicker">{t.heroKicker}</p>
+    <h1>{t.heroTitle}</h1>
+    <p class="hero__lead">{t.heroLead}</p>
+
+    {/* Иерархия CTA из брифа §3: две кнопки, телефон — вторичной ссылкой. */}
+    <div class="hero__cta">
+      <Button href={whatsappUrl} rel="noopener" target="_blank">WhatsApp</Button>
+      <Button href={contactHref}>{t.heroCta}</Button>
+    </div>
+    <p class="hero__phone">
+      <Button variant="text" href={phoneHref}>{t.heroCallLabel}: {phoneDisplay}</Button>
+    </p>
+  </div>
+
+  {
+    heroImage && (
+      <div class="hero__media">
+        <img
+          src={heroImage.src}
+          alt={heroImage.alt}
+          width={heroImage.width}
+          height={heroImage.height}
+          decoding="async"
+          fetchpriority="high"
+        />
+      </div>
+    )
+  }
+</section>
+
+{/* ── 2. Почему доверяют ──────────────────────────────────────────────── */}
+<section class="band">
+  <div class="band__inner">
+    <h2>{t.trustTitle}</h2>
+    <ul class="trust">
+      {/* Траст-формула брифа §1 — дословно, первым пунктом. */}
+      <li class="trust__main">{dict.about.trustFormula}</li>
+      <li>{t.trustPoint2}</li>
+      <li>{t.trustPoint3}</li>
+    </ul>
+  </div>
+</section>
+
+{/* ── 3. Последние проекты · гейт ≥3 паспортов ────────────────────────── */}
+{
+  showLatest && (
+    <section class="band">
+      <div class="band__inner">
+        <h2>{t.latestTitle}</h2>
+        <div class="latest">
+          {works.slice(0, 3).map((work) => (
+            <WorkCard
+              title={work.data.title}
+              city={work.data.city}
+              year={work.data.year}
+              unitLabels={dict.units}
+              material={dict.materials[work.data.material]}
+              demoLabel={work.data.demo ? dict.demo.badge : undefined}
+              href={workHref(work.data.slug)}
+              photo={{
+                src: work.data.photos[0]!.src.src,
+                width: work.data.photos[0]!.src.width,
+                height: work.data.photos[0]!.src.height,
+                alt: work.data.photos[0]!.alt,
+              }}
+              metrics={work.data.metrics}
+            />
+          ))}
+        </div>
+        <p><a class="more" href={portfolioHref}>{t.latestAll}</a></p>
+      </div>
+    </section>
+  )
+}
+
+{/* ── 4. Видео процесса · ассета нет → экрана нет ─────────────────────── */}
+{/* ── 5. Как проходит работа ─────────────────────────────────────────── */}
+<section class="band">
+  <div class="band__inner">
+    <h2>{t.howTitle}</h2>
+    <ol class="steps">{steps.map((step) => <li>{step}</li>)}</ol>
+  </div>
+</section>
+
+{/* ── 6. До/После · пар нет → экрана нет ──────────────────────────────── */}
+{/* ── Тизер карты · гейт ≥6 точек ─────────────────────────────────────── */}
+{
+  showMapTeaser && (
+    <section class="band">
+      <div class="band__inner">
+        <h2>{t.mapTeaserTitle}</h2>
+        <p>{t.mapTeaserBody}</p>
+        <p><a class="more" href={mapHref}>{t.mapTeaserCta}</a></p>
+      </div>
+    </section>
+  )
+}
+
+{/* ── 7. Мини-форма ───────────────────────────────────────────────────── */}
+<section class="band band--form">
+  <div class="band__inner">
+    <h2>{t.formTitle}</h2>
+    <p>{t.formLead}</p>
+    <slot name="form" />
+  </div>
+</section>
+
+{/* ── 8. Принципы мастера ─────────────────────────────────────────────── */}
+<section class="band">
+  <div class="band__inner">
+    <h2>{t.principlesTitle}</h2>
+    <ul class="principles">{principles.map((item) => <li>{item}</li>)}</ul>
+  </div>
+</section>
+
+{/* ── 9. FAQ · на <details>, работает без JS ──────────────────────────── */}
+<section class="band">
+  <div class="band__inner">
+    <h2>{t.faqTitle}</h2>
+    <div class="faq">
+      {
+        dict.faq.map((item) => (
+          <details class="faq__item">
+            <summary>{item.q}</summary>
+            <p>{item.a}</p>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+{/* ── 10. Финальный CTA ───────────────────────────────────────────────── */}
+<section class="band band--final">
+  <div class="band__inner">
+    <h2>{t.finalTitle}</h2>
+    <p>{t.finalLead}</p>
+    <div class="hero__cta">
+      <Button href={whatsappUrl} rel="noopener" target="_blank">WhatsApp</Button>
+      <Button href={contactHref}>{t.heroCta}</Button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    border-block-end: 1px solid var(--border-metal);
+  }
+
+  .hero__inner,
+  .band__inner {
+    margin-inline: auto;
+    max-inline-size: 72rem;
+    padding-inline: 1.5rem;
+  }
+
+  .hero__inner {
+    padding-block: 3rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .hero__kicker {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(1.75rem, 5vw, 2.75rem);
+    font-weight: 500;
+    line-height: var(--line-height-heading);
+  }
+
+  .hero__lead {
+    margin: 0;
+    max-inline-size: var(--measure);
+    font-size: 1.0625rem;
+    color: var(--text-muted);
+  }
+
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .hero__phone {
+    margin: 0;
+  }
+
+  .hero__media img {
+    inline-size: 100%;
+    block-size: auto;
+    display: block;
+    max-block-size: 60dvh;
+    object-fit: cover;
+  }
+
+  .band {
+    border-block-end: 1px solid var(--border-metal);
+  }
+
+  .band__inner {
+    padding-block: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 1.375rem;
+    font-weight: 500;
+  }
+
+  .band p {
+    margin: 0;
+    max-inline-size: var(--measure);
+  }
+
+  .trust,
+  .principles,
+  .steps {
+    margin: 0;
+    max-inline-size: var(--measure);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .trust,
+  .principles {
+    list-style: none;
+    padding: 0;
+  }
+
+  .steps {
+    padding-inline-start: 1.25rem;
+  }
+
+  .trust__main {
+    border-inline-start: 3px solid var(--accent-wood);
+    padding-inline-start: 1rem;
+  }
+
+  .latest {
+    inline-size: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .more {
+    color: var(--accent-text);
+  }
+
+  .faq {
+    inline-size: 100%;
+    max-inline-size: var(--measure);
+    border-block-start: 1px solid var(--border-metal);
+  }
+
+  .faq__item {
+    border-block-end: 1px solid var(--border-metal);
+  }
+
+  .faq__item summary {
+    cursor: pointer;
+    padding-block: 0.875rem;
+    font-weight: 500;
+    /* Цель для пальца не меньше 44px по высоте. */
+    min-block-size: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .faq__item p {
+    margin: 0;
+    padding-block-end: 1rem;
+    color: var(--text-muted);
+  }
+
+  .band--form,
+  .band--final {
+    background: var(--surface);
+  }
+</style>

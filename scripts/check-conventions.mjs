@@ -61,9 +61,11 @@ const ALLOWED_IMPORTS = {
   config: ['config'],
   lib: ['config', 'lib'],
   data: ['config', 'lib', 'data'],
-  components: ['config', 'lib', 'components', 'styles'],
-  layouts: ['config', 'lib', 'components', 'layouts', 'styles'],
-  pages: ['config', 'lib', 'data', 'components', 'layouts', 'pages', 'styles'],
+  // Бриф §2 прямо: «компоненты вызывают функции, а не fetch» — то есть
+  // обращаться в lib/api им разрешено, сам `fetch` остаётся только там.
+  components: ['config', 'lib', 'lib/api', 'components', 'styles'],
+  layouts: ['config', 'lib', 'lib/api', 'components', 'layouts', 'styles'],
+  pages: ['config', 'lib', 'lib/api', 'data', 'components', 'layouts', 'pages', 'styles'],
   // Витрина собирает компоненты так же, как страницы, но живёт отдельно:
   // в production её маршрута нет (DEC-0011).
   showcase: ['config', 'lib', 'data', 'components', 'layouts', 'showcase', 'styles'],

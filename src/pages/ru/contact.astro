@@ -1,0 +1,74 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import Button from '../../components/Button.astro';
+import TechnicalValue from '../../components/TechnicalValue.astro';
+import { getDictionary } from '../../data/dictionary';
+import { WHATSAPP_URL, PHONE_HREF, PHONE_DISPLAY } from '../../config/site';
+
+const locale = 'ru' as const;
+const dict = getDictionary(locale);
+const t = dict.contact;
+---
+
+<PageLayout
+  locale={locale}
+  nav={dict.nav}
+  theme={dict.theme}
+  title={`${t.title} — Rabota Dom`}
+  description={t.lead}
+  current="contact"
+>
+  <article class="contact">
+    <h1>{t.title}</h1>
+    <p class="contact__lead">{t.lead}</p>
+
+    <div class="contact__channels">
+      <Button href={WHATSAPP_URL} rel="noopener" target="_blank">{t.whatsapp}</Button>
+      <Button variant="text" href={PHONE_HREF}>
+        {t.call}: <TechnicalValue value={{ kind: 'plain', text: PHONE_DISPLAY }} unitLabels={dict.units} />
+      </Button>
+    </div>
+
+    {/* Ценовая честность из брифа §1 — дословно. */}
+    <p class="contact__price">{t.priceHonesty}</p>
+  </article>
+</PageLayout>
+
+<style>
+  .contact {
+    margin-inline: auto;
+    max-inline-size: 60rem;
+    padding-inline: 1.5rem;
+    padding-block: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.875rem;
+    font-weight: 500;
+  }
+
+  .contact__lead {
+    margin: 0;
+    color: var(--text-muted);
+    max-inline-size: var(--measure);
+  }
+
+  .contact__channels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .contact__price {
+    margin: 0;
+    max-inline-size: var(--measure);
+    border-block-start: 1px solid var(--border-metal);
+    padding-block-start: 1.25rem;
+    color: var(--text-muted);
+  }
+</style>

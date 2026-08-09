@@ -1,13 +1,39 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import FoundationCheck from '../../components/FoundationCheck.astro';
+import PageLayout from '../../layouts/PageLayout.astro';
+import HomePage from '../../components/HomePage.astro';
+import LeadForm from '../../components/LeadForm.astro';
 import { getDictionary } from '../../data/dictionary';
+import { getWorks } from '../../data/works';
+import { ROUTES, WHATSAPP_URL, PHONE_HREF, PHONE_DISPLAY } from '../../config/site';
+import { getRelativeLocaleUrl } from 'astro:i18n';
 
 const locale = 'ru' as const;
-const t = getDictionary(locale);
+const dict = getDictionary(locale);
+const works = await getWorks(locale);
+
+const workHref = (slug: string) => getRelativeLocaleUrl(locale, `${ROUTES.portfolio}${slug}/`);
 ---
 
-{/* noindex снимается в F8 вместе с Content Freeze — до запуска сайт staging. */}
-<BaseLayout locale={locale} title={t.scaffold.title} noindex>
-  <FoundationCheck locale={locale} scaffold={t.scaffold} theme={t.theme} />
-</BaseLayout>
+<PageLayout
+  locale={locale}
+  nav={dict.nav}
+  theme={dict.theme}
+  title={`Rabota Dom — ${dict.home.heroTitle}`}
+  description={dict.home.heroLead}
+  current="home"
+>
+  <HomePage
+    dict={dict}
+    works={works}
+    portfolioHref={getRelativeLocaleUrl(locale, ROUTES.portfolio)}
+    contactHref={getRelativeLocaleUrl(locale, ROUTES.contact)}
+    workHref={workHref}
+    whatsappUrl={WHATSAPP_URL}
+    phoneHref={PHONE_HREF}
+    phoneDisplay={PHONE_DISPLAY}
+    mapPoints={works.length}
+    mapHref={getRelativeLocaleUrl(locale, ROUTES.map)}
+  >
+    <LeadForm slot="form" dict={dict} whatsappUrl={WHATSAPP_URL} idPrefix="home" />
+  </HomePage>
+</PageLayout>

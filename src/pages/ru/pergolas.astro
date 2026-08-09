@@ -1,0 +1,37 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import ServicePage from '../../components/ServicePage.astro';
+import { getDictionary } from '../../data/dictionary';
+import { getWorks } from '../../data/works';
+import { ROUTES } from '../../config/site';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+const locale = 'ru' as const;
+const dict = getDictionary(locale);
+const t = dict.services;
+const works = (await getWorks(locale)).filter((work) => work.data.type === 'pergola');
+
+const workHref = (slug: string) => getRelativeLocaleUrl(locale, `${ROUTES.portfolio}${slug}/`);
+const contactHref = getRelativeLocaleUrl(locale, ROUTES.contact);
+---
+
+<PageLayout
+  locale={locale}
+  nav={dict.nav}
+  theme={dict.theme}
+  title={`${t.pergolaTitle} — Rabota Dom`}
+  description={t.pergolaLead}
+  current="services"
+>
+  <ServicePage
+    title={t.pergolaTitle}
+    lead={t.pergolaLead}
+    what={t.pergolaWhat}
+    materialsText={t.pergolaMaterials}
+    priceText={t.pergolaPrice}
+    dict={dict}
+    works={works}
+    workHref={workHref}
+    contactHref={contactHref}
+  />
+</PageLayout>

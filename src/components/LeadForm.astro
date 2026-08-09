@@ -1,0 +1,258 @@
+---
+/**
+ * Форма заявки: имя, телефон, город (по желанию), комментарий.
+ *
+ * Вход: словарь, адрес WhatsApp, флаг «полная форма». Выход: `<form>`.
+ * Кто использует: главная (мини-форма) и `/contact` (полная).
+ *
+ * Всё, что требует бриф §2, здесь уже есть, даже пока Worker не написан:
+ *  · honeypot — скрытое поле, у человека всегда пустое;
+ *  · time-check — форма помнит, когда её показали, и отправка раньше 2.5 с
+ *    считается ботом;
+ *  · нормализация телефона `+972…` → `0…` и проверка по маске;
+ *  · экран благодарности на месте, возврат формы только по кнопке;
+ *  · 429 — «попробуйте через час», 500 и обрыв связи — сразу ветка WhatsApp;
+ *  · кнопка WhatsApp видна ВСЕГДА, а не только в ошибке: это запасной путь,
+ *    который обязан быть под рукой до того, как что-то сломалось.
+ *
+ * Без JS форма остаётся читаемой, но не отправляет: рядом всегда есть
+ * рабочая ссылка WhatsApp, поэтому тупика не возникает.
+ */
+import Field from './Field.astro';
+import Button from './Button.astro';
+import type { Dictionary } from '../data/dictionary';
+
+interface Props {
+  dict: Dictionary;
+  whatsappUrl: string;
+  /** Полная форма добавляет город и комментарий. */
+  full?: boolean;
+  idPrefix: string;
+}
+
+const { dict, whatsappUrl, full = false, idPrefix } = Astro.props;
+const t = dict.forms;
+
+/**
+ * Тексты состояний уезжают в скрипт через JSON, а не через шаблонную строку
+ * внутри `<script>`: подстановка в скрипт — это инъекция чужого текста в код.
+ * Локализация остаётся на сервере, скрипт только читает готовое.
+ */
+const messages = {
+  sending: t.sending,
+  errorName: t.errorName,
+  errorPhone: t.errorPhone,
+  rateLimited: t.rateLimited,
+  serverError: t.serverError,
+  offline: t.offline,
+};
+---
+
+<div class="lead" data-lead-form data-whatsapp={whatsappUrl}>
+  <script type="application/json" data-form-labels set:html={JSON.stringify(messages)} />
+  <form class="lead__form" novalidate data-form>
+    <div class="lead__fields">
+      <Field id={`${idPrefix}-name`} label={t.name} placeholder={t.namePlaceholder} required autocomplete="name" />
+      <Field
+        id={`${idPrefix}-phone`}
+        label={t.phone}
+        type="tel"
+        placeholder={t.phonePlaceholder}
+        required
+        numeric
+        autocomplete="tel"
+      />
+      {full && <Field id={`${idPrefix}-city`} label={t.city} placeholder={t.cityPlaceholder} />}
+      {full && <Field id={`${idPrefix}-comment`} label={t.comment} />}
+    </div>
+
+    {/* Ловушка для ботов. Скрыта от глаз и от скринридера, но не disabled:
+        бот заполняет её именно потому, что видит в разметке. */}
+    <div class="lead__trap" aria-hidden="true">
+      <label for={`${idPrefix}-company`}>Company</label>
+      <input id={`${idPrefix}-company`} name="company" type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <p class="lead__consent">{t.consent}</p>
+
+    <div class="lead__actions">
+      <Button type="submit" data-submit>{t.submit}</Button>
+      <Button variant="text" href={whatsappUrl} rel="noopener" target="_blank">
+        {t.whatsappFallback}
+      </Button>
+    </div>
+
+    <p class="lead__status" role="status" aria-live="polite" data-status hidden></p>
+  </form>
+
+  <div class="lead__thanks" data-thanks hidden>
+    <h3>{t.thanksTitle}</h3>
+    <p>{t.thanksBody}</p>
+    <Button data-again>{t.sendAnother}</Button>
+  </div>
+</div>
+
+<script>
+  import { submitLead } from '../lib/api/client';
+  import { MIN_ELAPSED_MS, PHONE_PATTERN, normalizePhone } from '../lib/api/contract';
+
+  document.querySelectorAll<HTMLElement>('[data-lead-form]').forEach((root) => {
+    const form = root.querySelector<HTMLFormElement>('[data-form]')!;
+    const thanks = root.querySelector<HTMLElement>('[data-thanks]')!;
+    const status = root.querySelector<HTMLElement>('[data-status]')!;
+    const submit = root.querySelector<HTMLButtonElement>('[data-submit]')!;
+    const again = root.querySelector<HTMLButtonElement>('[data-again]')!;
+    const whatsapp = root.dataset.whatsapp ?? '';
+    const shownAt = Date.now();
+
+    const labels = JSON.parse(
+      root.querySelector('[data-form-labels]')?.textContent ?? '{}',
+    );
+
+    const field = (name: string) => form.querySelector<HTMLInputElement>(`[id$="-${name}"]`);
+
+    const setStatus = (text: string) => {
+      status.textContent = text;
+      status.hidden = !text;
+    };
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      setStatus('');
+
+      const nameInput = field('name');
+      const phoneInput = field('phone');
+      const trap = form.querySelector<HTMLInputElement>('input[name="company"]');
+
+      // Ловушка заполнена — это бот. Показываем ему обычную благодарность
+      // и никуда не отправляем: сообщать боту, что он распознан, незачем.
+      if (trap?.value) {
+        form.hidden = true;
+        thanks.hidden = false;
+        return;
+      }
+
+      if (!nameInput?.value.trim()) {
+        setStatus(labels.errorName ?? '');
+        nameInput?.focus();
+        return;
+      }
+
+      const phone = normalizePhone(phoneInput?.value ?? '');
+      if (!PHONE_PATTERN.test(phone)) {
+        setStatus(labels.errorPhone ?? '');
+        phoneInput?.focus();
+        return;
+      }
+
+      submit.disabled = true;
+      setStatus(labels.sending ?? '');
+
+      // Отправка раньше порога — не ошибка пользователя: так бывает при
+      // автозаполнении. Ждём недостающее время и отправляем, вместо того
+      // чтобы показывать живому человеку сообщение о сбое (бриф §2).
+      const elapsed = Date.now() - shownAt;
+      if (elapsed < MIN_ELAPSED_MS) {
+        await new Promise((resolve) => setTimeout(resolve, MIN_ELAPSED_MS - elapsed));
+      }
+
+      const outcome = await submitLead({
+        name: nameInput.value.trim(),
+        phone,
+        city: field('city')?.value.trim() || undefined,
+        comment: field('comment')?.value.trim() || undefined,
+        meta: {
+          page: location.pathname,
+          locale: document.documentElement.lang,
+          device: window.matchMedia('(max-width: 48rem)').matches ? 'mobile' : 'desktop',
+        },
+        elapsedMs: Date.now() - shownAt,
+      });
+
+      submit.disabled = false;
+
+      if (outcome.status === 'ok') {
+        form.hidden = true;
+        thanks.hidden = false;
+        // Фокус переводится на благодарность: иначе скринридер останется
+        // на кнопке исчезнувшей формы.
+        thanks.querySelector('h3')?.setAttribute('tabindex', '-1');
+        thanks.querySelector<HTMLElement>('h3')?.focus();
+        return;
+      }
+
+      if (outcome.status === 'rate-limited') {
+        setStatus(labels.rateLimited ?? '');
+        return;
+      }
+
+      // Сервер или сеть подвели — уводим в WhatsApp сразу, не заставляя ждать.
+      setStatus(outcome.status === 'offline' ? labels.offline : labels.serverError);
+      if (whatsapp) location.href = whatsapp;
+    });
+
+    again.addEventListener('click', () => {
+      form.reset();
+      form.hidden = false;
+      thanks.hidden = true;
+      setStatus('');
+      field('name')?.focus();
+    });
+  });
+</script>
+
+<style>
+  .lead {
+    inline-size: 100%;
+    max-inline-size: 34rem;
+  }
+
+  .lead__fields {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .lead__trap {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .lead__consent {
+    margin: 1rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+
+  .lead__actions {
+    margin-block-start: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .lead__status {
+    margin: 0.75rem 0 0;
+    color: var(--accent-text);
+    font-size: 0.9375rem;
+  }
+
+  .lead__thanks h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  .lead__thanks h3:focus {
+    outline: none;
+  }
+
+  .lead__thanks p {
+    margin: 0 0 1rem;
+    color: var(--text-muted);
+  }
+</style>

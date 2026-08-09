@@ -1,0 +1,117 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import { getDictionary } from '../../data/dictionary';
+
+const locale = 'ru' as const;
+const dict = getDictionary(locale);
+const t = dict.about;
+
+const steps = [t.step1, t.step2, t.step3, t.step4];
+const principles = [t.principle1, t.principle2, t.principle3];
+---
+
+<PageLayout
+  locale={locale}
+  nav={dict.nav}
+  theme={dict.theme}
+  title={`${t.title} — Rabota Dom`}
+  description={t.lead}
+  current="about"
+>
+  <article class="about">
+    <h1>{t.title}</h1>
+    <p class="about__lead">{t.lead}</p>
+
+    {/* Траст-формула из брифа §1 — дословно, не перефразируется. */}
+    <p class="about__trust">{t.trustFormula}</p>
+
+    <section>
+      <h2>{t.howTitle}</h2>
+      <ol class="steps">
+        {steps.map((step) => <li>{step}</li>)}
+      </ol>
+    </section>
+
+    <section>
+      <h2>{t.principlesTitle}</h2>
+      <ul class="principles">
+        {principles.map((item) => <li>{item}</li>)}
+      </ul>
+    </section>
+
+    <section>
+      <h2>{t.guarantee}</h2>
+      <p>{t.guaranteeBody}</p>
+    </section>
+  </article>
+</PageLayout>
+
+<style>
+  .about {
+    margin-inline: auto;
+    max-inline-size: 60rem;
+    padding-inline: 1.5rem;
+    padding-block: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  h1 {
+    margin: 0 0 0.5rem;
+    font-size: 1.875rem;
+    font-weight: 500;
+  }
+
+  h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  .about__lead {
+    margin: 0;
+    max-inline-size: var(--measure);
+    font-size: 1.0625rem;
+    color: var(--text-muted);
+  }
+
+  .about__trust {
+    margin: 0;
+    max-inline-size: var(--measure);
+    border-inline-start: 3px solid var(--accent-wood);
+    padding-inline-start: 1rem;
+  }
+
+  section p {
+    margin: 0;
+    max-inline-size: var(--measure);
+  }
+
+  .steps,
+  .principles {
+    margin: 0;
+    max-inline-size: var(--measure);
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .steps {
+    padding-inline-start: 1.25rem;
+  }
+
+  .principles {
+    list-style: none;
+    padding: 0;
+  }
+
+  .principles li {
+    border-block-end: 1px solid var(--border-metal);
+    padding-block-end: 0.625rem;
+  }
+
+  .principles li:last-child {
+    border-block-end: none;
+  }
+</style>

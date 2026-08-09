@@ -1,0 +1,145 @@
+---
+/**
+ * Каркас страницы одной услуги: суть, состав, что влияет на цену,
+ * работы этого типа, призыв.
+ *
+ * Вход: тексты и работы через props. Выход: содержимое страницы.
+ * Кто использует: `/pergolas`, `/canopies`, `/fences` всех локалей.
+ *
+ * Блок «работы этого типа» исчезает целиком, если работ такого типа нет —
+ * не показывает пустую сетку и не пишет «скоро здесь будет» (бриф §4).
+ * Анти-шаблонные блоки (тень 12/16/19, дождь-тест, «с улицы/со двора»)
+ * появятся здесь же, когда придут ассеты: до тех пор их нет вовсе,
+ * а не в виде заглушек.
+ */
+import WorkCard from './WorkCard.astro';
+import Button from './Button.astro';
+import type { Dictionary } from '../data/dictionary';
+import type { WorkEntry } from '../data/works';
+
+interface Props {
+  title: string;
+  lead: string;
+  what: string;
+  materialsText: string;
+  priceText: string;
+  dict: Dictionary;
+  works: WorkEntry[];
+  workHref: (slug: string) => string;
+  contactHref: string;
+}
+
+const { title, lead, what, materialsText, priceText, dict, works, workHref, contactHref } =
+  Astro.props;
+const t = dict.services;
+---
+
+<article class="service">
+  <header>
+    <h1>{title}</h1>
+    <p class="service__lead">{lead}</p>
+  </header>
+
+  <section>
+    <h2>{t.what}</h2>
+    <p>{what}</p>
+  </section>
+
+  <section>
+    <h2>{t.materials}</h2>
+    <p>{materialsText}</p>
+  </section>
+
+  <section>
+    <h2>{t.priceFactors}</h2>
+    <p>{priceText}</p>
+  </section>
+
+  {
+    works.length > 0 && (
+      <section>
+        <h2>{t.ourWorks}</h2>
+        <div class="service__works">
+          {works.map((work) => (
+            <WorkCard
+              title={work.data.title}
+              city={work.data.city}
+              year={work.data.year}
+              unitLabels={dict.units}
+              material={dict.materials[work.data.material]}
+              demoLabel={work.data.demo ? dict.demo.badge : undefined}
+              href={workHref(work.data.slug)}
+              photo={{
+                src: work.data.photos[0]!.src.src,
+                width: work.data.photos[0]!.src.width,
+                height: work.data.photos[0]!.src.height,
+                alt: work.data.photos[0]!.alt,
+              }}
+              metrics={work.data.metrics}
+            />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <section class="service__cta">
+    <p class="service__note">{t.ctaNote}</p>
+    <Button href={contactHref}>{t.cta}</Button>
+  </section>
+</article>
+
+<style>
+  .service {
+    margin-inline: auto;
+    max-inline-size: 72rem;
+    padding-inline: 1.5rem;
+    padding-block: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  h1 {
+    margin: 0 0 0.5rem;
+    font-size: 1.875rem;
+    font-weight: 500;
+  }
+
+  h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  .service__lead {
+    margin: 0;
+    max-inline-size: var(--measure);
+    font-size: 1.0625rem;
+    color: var(--text-muted);
+  }
+
+  section p {
+    margin: 0;
+    max-inline-size: var(--measure);
+  }
+
+  .service__works {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .service__cta {
+    border-block-start: 1px solid var(--border-metal);
+    padding-block-start: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .service__note {
+    color: var(--text-muted);
+  }
+</style>

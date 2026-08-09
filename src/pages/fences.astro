@@ -1,0 +1,37 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import ServicePage from '../components/ServicePage.astro';
+import { getDictionary } from '../data/dictionary';
+import { getWorks } from '../data/works';
+import { ROUTES } from '../config/site';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+const locale = 'he' as const;
+const dict = getDictionary(locale);
+const t = dict.services;
+const works = (await getWorks(locale)).filter((work) => work.data.type === 'fence');
+
+const workHref = (slug: string) => getRelativeLocaleUrl(locale, `${ROUTES.portfolio}${slug}/`);
+const contactHref = getRelativeLocaleUrl(locale, ROUTES.contact);
+---
+
+<PageLayout
+  locale={locale}
+  nav={dict.nav}
+  theme={dict.theme}
+  title={`${t.fenceTitle} — Rabota Dom`}
+  description={t.fenceLead}
+  current="services"
+>
+  <ServicePage
+    title={t.fenceTitle}
+    lead={t.fenceLead}
+    what={t.fenceWhat}
+    materialsText={t.fenceMaterials}
+    priceText={t.fencePrice}
+    dict={dict}
+    works={works}
+    workHref={workHref}
+    contactHref={contactHref}
+  />
+</PageLayout>

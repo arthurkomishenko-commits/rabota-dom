@@ -20,6 +20,13 @@ interface Props {
   rel?: string;
   target?: string;
   class?: string;
+  /**
+   * Остальные атрибуты (`data-*`, `aria-*`, `id`) прокидываются на элемент.
+   * Без этого крючки вроде `data-submit` молча пропадали из разметки,
+   * и скрипт формы не находил собственную кнопку. BUG-0009.
+   */
+  [key: `data-${string}`]: string | boolean | undefined;
+  [key: `aria-${string}`]: string | boolean | undefined;
 }
 
 const {
@@ -30,6 +37,7 @@ const {
   rel,
   target,
   class: className,
+  ...rest
 } = Astro.props;
 
 // Отключённая ссылка недоступна с клавиатуры и не имеет смысла как <a>:
@@ -40,11 +48,11 @@ const classes = ['btn', `btn--${variant}`, className].filter(Boolean).join(' ');
 
 {
   asLink ? (
-    <a class={classes} href={href} rel={rel} target={target}>
+    <a class={classes} href={href} rel={rel} target={target} {...rest}>
       <slot />
     </a>
   ) : (
-    <button class={classes} type={type} disabled={disabled}>
+    <button class={classes} type={type} disabled={disabled} {...rest}>
       <slot />
     </button>
   )

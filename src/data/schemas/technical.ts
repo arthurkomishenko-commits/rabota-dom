@@ -60,7 +60,18 @@ export const yearSchema = z.object({
   value: z.number().int().gte(1990).lte(2100),
 });
 
+/**
+ * Уже готовая техническая строка: телефон, артикул, координата.
+ * Форматировать нечего — но изоляция направления нужна ровно та же,
+ * иначе `054-973-1889` в RTL распадётся на переставленные группы цифр.
+ */
+export const plainSchema = z.object({
+  kind: z.literal('plain'),
+  text: z.string().min(1),
+});
+
 export const technicalValueSchema = z.discriminatedUnion('kind', [
+  plainSchema,
   quantitySchema,
   dimensionsSchema,
   rangeSchema,

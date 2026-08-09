@@ -1,0 +1,100 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import { getDictionary } from '../data/dictionary';
+import { ROUTES } from '../config/site';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+const locale = 'he' as const;
+const dict = getDictionary(locale);
+const t = dict.services;
+
+const cards = [
+  { href: ROUTES.pergolas, title: t.pergolaTitle, lead: t.pergolaLead },
+  { href: ROUTES.canopies, title: t.canopyTitle, lead: t.canopyLead },
+  { href: ROUTES.fences, title: t.fenceTitle, lead: t.fenceLead },
+];
+---
+
+<PageLayout
+  locale={locale}
+  nav={dict.nav}
+  theme={dict.theme}
+  title={`${t.title} — Rabota Dom`}
+  description={t.intro}
+  current="services"
+>
+  <section class="page">
+    <h1>{t.title}</h1>
+    <p class="page__intro">{t.intro}</p>
+
+    <ul class="cards">
+      {
+        cards.map((card) => (
+          <li class="cards__item">
+            <a href={getRelativeLocaleUrl(locale, card.href)}>
+              <h2>{card.title}</h2>
+              <p>{card.lead}</p>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</PageLayout>
+
+<style>
+  .page {
+    margin-inline: auto;
+    max-inline-size: 72rem;
+    padding-inline: 1.5rem;
+    padding-block: 2.5rem;
+  }
+
+  h1 {
+    margin: 0 0 0.5rem;
+    font-size: 1.875rem;
+    font-weight: 500;
+  }
+
+  .page__intro {
+    margin: 0 0 2rem;
+    max-inline-size: var(--measure);
+    color: var(--text-muted);
+  }
+
+  .cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+
+  .cards__item a {
+    display: block;
+    block-size: 100%;
+    border: 1px solid var(--border-metal);
+    border-radius: var(--radius-base);
+    background: var(--surface);
+    padding: 1.25rem;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .cards__item a:hover {
+    border-color: var(--accent-wood);
+  }
+
+  .cards__item h2 {
+    margin: 0 0 0.375rem;
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  .cards__item p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+  }
+</style>

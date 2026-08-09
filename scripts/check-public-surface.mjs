@@ -94,7 +94,33 @@ for (const slug of fixtureSlugs()) {
   }
 }
 
+/**
+ * Каждый пункт меню обязан вести на существующую страницу — во всех локалях.
+ * Ссылка в навигации, ведущая в 404, не производит ошибку сборки сама по себе:
+ * она просто существует. Проверяем явно (кодекс §6, урок BUG-0006).
+ */
+const NAV_ROUTES = ['portfolio', 'services', 'about', 'contact'];
+const ROUTE_PATHS = {
+  portfolio: 'portfolio',
+  services: 'services',
+  about: 'about',
+  contact: 'contact',
+};
+
 const pages = files.filter((f) => f.endsWith('.html'));
+
+for (const locale of ['', 'ru/', 'en/']) {
+  for (const key of NAV_ROUTES) {
+    const path = ROUTE_PATHS[key];
+    const exists =
+      pages.includes(`${locale}${path}/index.html`) || pages.includes(`${locale}${path}.html`);
+    if (!exists) {
+      problems.push(
+        `пункт меню «${key}» ведёт в никуда: нет страницы ${locale}${path}/ (локаль «${locale || 'he'}»)`,
+      );
+    }
+  }
+}
 if (pages.length === 0) problems.push('в dist нет ни одной страницы');
 
 for (const page of pages) {

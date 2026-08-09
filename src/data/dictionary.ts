@@ -101,6 +101,108 @@ export type Dictionary = {
     backToList: string;
   };
 
+  /** Услуги: общая страница и три страницы типов. */
+  services: {
+    title: string;
+    intro: string;
+    what: string;
+    materials: string;
+    priceFactors: string;
+    ourWorks: string;
+    cta: string;
+    ctaNote: string;
+    pergolaTitle: string;
+    pergolaLead: string;
+    pergolaWhat: string;
+    pergolaMaterials: string;
+    pergolaPrice: string;
+    canopyTitle: string;
+    canopyLead: string;
+    canopyWhat: string;
+    canopyMaterials: string;
+    canopyPrice: string;
+    fenceTitle: string;
+    fenceLead: string;
+    fenceWhat: string;
+    fenceMaterials: string;
+    fencePrice: string;
+  };
+
+  /** О мастере и контакты. Траст-формула — дословно из брифа §1. */
+  about: {
+    title: string;
+    lead: string;
+    trustFormula: string;
+    howTitle: string;
+    step1: string;
+    step2: string;
+    step3: string;
+    step4: string;
+    principlesTitle: string;
+    principle1: string;
+    principle2: string;
+    principle3: string;
+    guarantee: string;
+    guaranteeBody: string;
+  };
+  contact: {
+    title: string;
+    lead: string;
+    whatsapp: string;
+    call: string;
+    formTitle: string;
+    priceHonesty: string;
+  };
+
+  /** Главная: десять экранов по брифу §3. */
+  home: {
+    heroKicker: string;
+    heroTitle: string;
+    heroLead: string;
+    heroCta: string;
+    heroCallLabel: string;
+    trustTitle: string;
+    trustPoint2: string;
+    trustPoint3: string;
+    latestTitle: string;
+    latestAll: string;
+    howTitle: string;
+    formTitle: string;
+    formLead: string;
+    principlesTitle: string;
+    faqTitle: string;
+    finalTitle: string;
+    finalLead: string;
+    mapTeaserTitle: string;
+    mapTeaserBody: string;
+    mapTeaserCta: string;
+  };
+  /** FAQ: вопрос и ответ. Цена и гарантия — формулы брифа §1 дословно. */
+  faq: { q: string; a: string }[];
+
+  /** Формы: подписи, состояния, ошибки. */
+  forms: {
+    name: string;
+    namePlaceholder: string;
+    phone: string;
+    phonePlaceholder: string;
+    city: string;
+    cityPlaceholder: string;
+    comment: string;
+    submit: string;
+    sending: string;
+    consent: string;
+    thanksTitle: string;
+    thanksBody: string;
+    sendAnother: string;
+    errorPhone: string;
+    errorName: string;
+    rateLimited: string;
+    serverError: string;
+    offline: string;
+    whatsappFallback: string;
+  };
+
   /** Страница 404. */
   notFound: { title: string; body: string; toHome: string };
   scaffold: {
@@ -146,6 +248,110 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       otherWorks: 'עבודות נוספות',
       backToList: 'לכל העבודות',
     },
+    services: {
+      title: 'שירותים',
+      intro: 'שלושה סוגי עבודה. בכל אחד — מה זה, ממה מרכיבים ומה משפיע על המחיר.',
+      what: 'מה זה',
+      materials: 'ממה מרכיבים',
+      priceFactors: 'מה משפיע על המחיר',
+      ourWorks: 'עבודות מסוג זה',
+      cta: 'קבלת הערכה ראשונית',
+      ctaNote: 'כל פרויקט מחושב לגופו. נגיע, נמדוד ונאמר מחיר — הערכה ראשונית בלי התחייבות.',
+      pergolaTitle: 'פרגולות',
+      pergolaLead: 'צל מעל הרחבה או הכניסה, בלי להפוך את החצר לחדר סגור.',
+      pergolaWhat: 'מבנה עם עמודים וקורות. השלבים מעבירים אוויר ושוברים את השמש, ובחורף נותנים לאור להיכנס.',
+      pergolaMaterials: 'עץ, אלומיניום או שילוב. אלומיניום לא מתעוות בלחות; עץ חם למראה ודורש תחזוקה.',
+      pergolaPrice: 'שטח, אופן החיבור לקיר או עמידה חופשית, סוג הכיסוי, שיפוע הרחבה ופירוק של מבנה קודם.',
+      canopyTitle: 'קירויים',
+      canopyLead: 'הגנה מגשם ומשמש מעל כניסה, חניה או מרפסת.',
+      canopyWhat: 'קירוי סגור יותר מפרגולה: המים יורדים לצד שנקבע מראש, לא על הראש.',
+      canopyMaterials: 'שלד מתכת או אלומיניום, כיסוי אטום או פוליקרבונט.',
+      canopyPrice: 'מפתח, שיפוע, ניקוז והאם יש למה להתחבר בקיר.',
+      fenceTitle: 'גדרות',
+      fenceLead: 'גבול המגרש: פחות מבטים מבחוץ, בלי קיר אטום מבפנים.',
+      fenceWhat: 'עמודים, קורות ומילוי. הרווחים קובעים כמה רואים ואיך עובר האוויר.',
+      fenceMaterials: 'עץ, מתכת או שילוב. העמודים מבוטנים תמיד.',
+      fencePrice: 'אורך, גובה, הפרשי גובה במגרש, מספר השערים וסוג המילוי.',
+    },
+    about: {
+      title: 'על האומן',
+      lead: 'ולדימיר עובד בצפון הארץ. פרגולות, קירויים וגדרות — עץ, מתכת ושילוב.',
+      trustFormula: 'ולדימיר — הפנים של הפרויקט: מייעץ, מבצע את המדידה ומפקח על העבודה. את ההתקנה מבצע הצוות הקבוע שלו — בלי קבלני משנה ובלי מתווכים.',
+      howTitle: 'איך מתנהלת העבודה',
+      step1: 'קשר — מספרים מה רוצים, שולחים תמונה של המקום.',
+      step2: 'מדידה — מגיעים, מודדים, אומרים מה אפשרי ומה לא.',
+      step3: 'ייצור — חותכים ומכינים לפי המידות שנמדדו.',
+      step4: 'התקנה — מרכיבים, מיישרים במפלס ומנקים אחרינו.',
+      principlesTitle: 'עקרונות',
+      principle1: 'לא מבטיחים תאריך שאי אפשר לעמוד בו. אם משהו זז — מודיעים מראש, לא ביום האחרון.',
+      principle2: 'החומרים נבחרים לפי האקלים כאן, לא לפי מה שנשאר במחסן.',
+      principle3: 'אחרי סיום העבודה החצר נשארת נקייה. זה חלק מהעבודה, לא טובה.',
+      guarantee: 'אחריות',
+      guaranteeBody: 'על כל העבודות ניתנת אחריות. היא מכסה את המבנה ואת ההתקנה; משך האחריות והתנאים נקבעים בהסכם לפני תחילת העבודה.',
+    },
+    contact: {
+      title: 'יצירת קשר',
+      lead: 'נענה בדרך שנוחה לכם.',
+      whatsapp: 'כתיבה בוואטסאפ',
+      call: 'שיחת טלפון',
+      formTitle: 'להשאיר פנייה',
+      priceHonesty: 'כל פרויקט מחושב לגופו. אחרי מדידה חינם נאמר מחיר — הערכה ראשונית בלי התחייבות.',
+    },
+    home: {
+      heroKicker: 'ולדימיר · נוף הגליל',
+      heroTitle: 'פרגולות, קירויים וגדרות',
+      heroLead: 'מגיעים, מודדים ואומרים מחיר. אחר כך אתם מחליטים.',
+      heroCta: 'קבלת הערכה ראשונית',
+      heroCallLabel: 'טלפון',
+      trustTitle: 'למה סומכים',
+      trustPoint2: 'התקנה מסודרת וזמנים אמיתיים. את משך העבודה רואים בכל עבודה באתר, לא רק במילים.',
+      trustPoint3: 'החומרים נבחרים לפי האקלים כאן: לחות, שמש וקרבה לים.',
+      latestTitle: 'עבודות אחרונות',
+      latestAll: 'כל העבודות',
+      howTitle: 'איך מתנהלת העבודה',
+      formTitle: 'להשאיר פנייה',
+      formLead: 'נענה בדרך שנוחה לכם.',
+      principlesTitle: 'עקרונות',
+      faqTitle: 'שאלות שחוזרות',
+      finalTitle: 'נדבר על החצר שלכם',
+      finalLead: 'שלחו תמונה של המקום — נאמר מה אפשרי.',
+      mapTeaserTitle: 'מפת העבודות',
+      mapTeaserBody: 'לראות מה נבנה קרוב אליכם.',
+      mapTeaserCta: 'פתיחת המפה',
+    },
+    forms: {
+      name: 'שם',
+      namePlaceholder: 'איך לפנות אליכם',
+      phone: 'טלפון',
+      phonePlaceholder: '050 000 0000',
+      city: 'עיר',
+      cityPlaceholder: 'לא חובה',
+      comment: 'מה רוצים לבנות',
+      submit: 'שליחת פנייה',
+      sending: 'שולח…',
+      consent: 'בשליחה אתם מסכימים שנשמור את השם והטלפון כדי לחזור אליכם.',
+      thanksTitle: 'קיבלנו',
+      thanksBody: 'נחזור אליכם. אם ממהרים — כתבו בוואטסאפ, שם עונים מהר יותר.',
+      sendAnother: 'שליחת פנייה נוספת',
+      errorPhone: 'נראה שחסרה ספרה במספר. פורמט: 050 000 0000',
+      errorName: 'איך לפנות אליכם?',
+      rateLimited: 'יותר מדי ניסיונות. נסו בעוד שעה או כתבו בוואטסאפ.',
+      serverError: 'לא הצלחנו לשלוח. כתבו בוואטסאפ — זה יגיע מיד.',
+      offline: 'אין חיבור. כתבו בוואטסאפ — זה יגיע מיד.',
+      whatsappFallback: 'שליחה בוואטסאפ',
+    },
+    faq: [
+      { q: 'כמה זה עולה?', a: 'כל פרויקט מחושב לגופו. אחרי מדידה חינם נאמר מחיר — הערכה ראשונית בלי התחייבות.' },
+      { q: 'יש אחריות?', a: 'על כל העבודות ניתנת אחריות. היא מכסה את המבנה ואת ההתקנה; משך האחריות והתנאים נקבעים בהסכם לפני תחילת העבודה.' },
+      { q: 'כמה זמן זה לוקח?', a: 'בכל עבודה באתר רשום כמה ימים היא לקחה. פרגולה בגודל בינוני — בדרך כלל כמה ימי עבודה אחרי הייצור.' },
+      { q: 'עץ או אלומיניום?', a: 'אלומיניום לא מתעוות מלחות ודורש פחות תחזוקה. עץ נראה חם יותר. בשילוב לוקחים מכל אחד את מה שמתאים למקום.' },
+      { q: 'צריך היתר?', a: 'תלוי בגודל ובמיקום ביחס לגבול המגרש. במדידה נאמר מה המצב אצלכם.' },
+      { q: 'מה עם תחזוקה?', a: 'אלומיניום — שטיפה. עץ — שכבת הגנה אחת לכמה שנים, תלוי בחשיפה לשמש.' },
+      { q: 'לאן מגיעים?', a: 'נוף הגליל והסביבה. למרחקים גדולים יותר — לפי היקף העבודה.' },
+      { q: 'איך משלמים?', a: 'התנאים נקבעים בהסכם לפני תחילת העבודה, כדי שלא יהיו הפתעות באמצע.' },
+      { q: 'אפשר לשנות משהו תוך כדי?', a: 'עדיף לפני הייצור: אחרי החיתוך שינוי עולה זמן וחומר. נאמר מראש מה עוד אפשר לשנות.' },
+      { q: 'מי מנקה אחרי העבודה?', a: 'אנחנו. החצר נשארת נקייה — זה חלק מהעבודה, לא טובה.' },
+    ],
     nav: {
       label: 'ניווט ראשי',
       home: 'דף הבית',
@@ -226,6 +432,110 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       otherWorks: 'Другие работы',
       backToList: 'Ко всем работам',
     },
+    services: {
+      title: 'Услуги',
+      intro: 'Три типа работ. По каждому — что это, из чего собираем и что влияет на цену.',
+      what: 'Что это',
+      materials: 'Из чего собираем',
+      priceFactors: 'Что влияет на цену',
+      ourWorks: 'Работы этого типа',
+      cta: 'Получить предварительную оценку',
+      ctaNote: 'Каждый проект рассчитывается индивидуально. Приедем, замерим и назовём цену — предварительная оценка без обязательств.',
+      pergolaTitle: 'Перголы',
+      pergolaLead: 'Тень над площадкой или входом, без превращения двора в закрытую комнату.',
+      pergolaWhat: 'Конструкция из опор и балок. Ламели пропускают воздух и разбивают солнце, а зимой дают свету пройти.',
+      pergolaMaterials: 'Дерево, алюминий или комбинация. Алюминий не ведёт от влаги; дерево теплее на вид и требует ухода.',
+      pergolaPrice: 'Площадь, крепление к стене или отдельная стойка, тип покрытия, уклон площадки и демонтаж старой конструкции.',
+      canopyTitle: 'Навесы',
+      canopyLead: 'Защита от дождя и солнца над входом, машиной или террасой.',
+      canopyWhat: 'Навес закрытее перголы: вода уходит в заранее выбранную сторону, а не на голову.',
+      canopyMaterials: 'Каркас из металла или алюминия, покрытие сплошное или поликарбонат.',
+      canopyPrice: 'Пролёт, уклон, водоотвод и есть ли к чему крепиться в стене.',
+      fenceTitle: 'Заборы',
+      fenceLead: 'Граница участка: меньше взглядов снаружи, без глухой стены внутри.',
+      fenceWhat: 'Опоры, лаги и заполнение. Просветы решают, насколько двор просматривается и как проходит воздух.',
+      fenceMaterials: 'Дерево, металл или комбинация. Опоры бетонируются всегда.',
+      fencePrice: 'Длина, высота, перепад по участку, число калиток и ворот, тип заполнения.',
+    },
+    about: {
+      title: 'О мастере',
+      lead: 'Владимир работает на севере Израиля. Перголы, навесы и заборы — дерево, металл, комбинация.',
+      trustFormula: 'Владимир — лицо проекта: консультирует, делает замер и контролирует работу. Монтаж выполняет его постоянная команда — без субподрядчиков и посредников.',
+      howTitle: 'Как проходит работа',
+      step1: 'Связь — рассказываете, что хотите, присылаете фото места.',
+      step2: 'Замер — приезжаем, меряем, говорим, что возможно, а что нет.',
+      step3: 'Изготовление — режем и готовим по снятым размерам.',
+      step4: 'Монтаж — собираем, выводим по уровню и убираем за собой.',
+      principlesTitle: 'Принципы',
+      principle1: 'Не обещаем дату, в которую нельзя уложиться. Если что-то сдвигается — говорим заранее, а не в последний день.',
+      principle2: 'Материалы подбираются под здешний климат, а не по остаткам на складе.',
+      principle3: 'После работы двор остаётся чистым. Это часть работы, а не одолжение.',
+      guarantee: 'Гарантия',
+      guaranteeBody: 'На все работы предоставляется гарантия. Она покрывает конструкцию и монтаж; срок и условия фиксируются в договоре перед началом работ.',
+    },
+    contact: {
+      title: 'Связаться',
+      lead: 'Ответим удобным для вас способом.',
+      whatsapp: 'Написать в WhatsApp',
+      call: 'Позвонить',
+      formTitle: 'Оставить заявку',
+      priceHonesty: 'Каждый проект рассчитывается индивидуально. После бесплатного замера назовём цену — предварительная оценка без обязательств.',
+    },
+    home: {
+      heroKicker: 'Владимир · Ноф-ха-Галиль',
+      heroTitle: 'Перголы, навесы и заборы',
+      heroLead: 'Приезжаем, замеряем и называем цену. Дальше решаете вы.',
+      heroCta: 'Получить предварительную оценку',
+      heroCallLabel: 'Телефон',
+      trustTitle: 'Почему доверяют',
+      trustPoint2: 'Аккуратный монтаж и честные сроки. Срок работ виден в каждом объекте на сайте, а не только на словах.',
+      trustPoint3: 'Материалы подбираются под здешний климат: влажность, солнце и близость моря.',
+      latestTitle: 'Последние проекты',
+      latestAll: 'Все работы',
+      howTitle: 'Как проходит работа',
+      formTitle: 'Оставить заявку',
+      formLead: 'Ответим удобным для вас способом.',
+      principlesTitle: 'Принципы',
+      faqTitle: 'Частые вопросы',
+      finalTitle: 'Поговорим о вашем дворе',
+      finalLead: 'Пришлите фото места — скажем, что там возможно.',
+      mapTeaserTitle: 'Карта работ',
+      mapTeaserBody: 'Посмотреть, что построено рядом с вами.',
+      mapTeaserCta: 'Открыть карту',
+    },
+    forms: {
+      name: 'Имя',
+      namePlaceholder: 'Как к вам обращаться',
+      phone: 'Телефон',
+      phonePlaceholder: '050 000 0000',
+      city: 'Город',
+      cityPlaceholder: 'Необязательно',
+      comment: 'Что хотите построить',
+      submit: 'Отправить заявку',
+      sending: 'Отправляем…',
+      consent: 'Отправляя, вы соглашаетесь, что мы сохраним имя и телефон, чтобы перезвонить.',
+      thanksTitle: 'Получили',
+      thanksBody: 'Перезвоним. Если срочно — напишите в WhatsApp, там отвечаем быстрее.',
+      sendAnother: 'Отправить ещё заявку',
+      errorPhone: 'Похоже, в номере не хватает цифры. Формат: 050 000 0000',
+      errorName: 'Как к вам обращаться?',
+      rateLimited: 'Слишком много попыток — попробуйте через час или напишите в WhatsApp.',
+      serverError: 'Не смогли отправить. Напишите в WhatsApp — дойдёт сразу.',
+      offline: 'Нет связи. Напишите в WhatsApp — дойдёт сразу.',
+      whatsappFallback: 'Отправить через WhatsApp',
+    },
+    faq: [
+      { q: 'Сколько это стоит?', a: 'Каждый проект рассчитывается индивидуально. После бесплатного замера назовём цену — предварительная оценка без обязательств.' },
+      { q: 'Есть гарантия?', a: 'На все работы предоставляется гарантия. Она покрывает конструкцию и монтаж; срок и условия фиксируются в договоре перед началом работ.' },
+      { q: 'Сколько времени занимает?', a: 'У каждой работы на сайте указано, сколько дней она заняла. Пергола среднего размера — обычно несколько рабочих дней после изготовления.' },
+      { q: 'Дерево или алюминий?', a: 'Алюминий не ведёт от влаги и требует меньше ухода. Дерево выглядит теплее. В комбинации берут от каждого то, что подходит месту.' },
+      { q: 'Нужно ли разрешение?', a: 'Зависит от размера и расстояния до границы участка. На замере скажем, как обстоит дело у вас.' },
+      { q: 'Что с уходом?', a: 'Алюминий — помыть. Дерево — слой защиты раз в несколько лет, в зависимости от того, сколько на него светит.' },
+      { q: 'Куда приезжаете?', a: 'Ноф-ха-Галиль и окрестности. Дальше — по объёму работы.' },
+      { q: 'Как происходит оплата?', a: 'Условия фиксируются в договоре до начала работ, чтобы посреди процесса не возникало сюрпризов.' },
+      { q: 'Можно что-то поменять по ходу?', a: 'Лучше до изготовления: после раскроя изменение стоит времени и материала. Заранее скажем, что ещё можно поменять.' },
+      { q: 'Кто убирает после работы?', a: 'Мы. Двор остаётся чистым — это часть работы, а не одолжение.' },
+    ],
     nav: {
       label: 'Основная навигация',
       home: 'Главная',
@@ -306,6 +616,110 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       otherWorks: 'Other work',
       backToList: 'All projects',
     },
+    services: {
+      title: 'Services',
+      intro: 'Three kinds of work. For each one: what it is, what it is built from and what moves the price.',
+      what: 'What it is',
+      materials: 'What we build it from',
+      priceFactors: 'What moves the price',
+      ourWorks: 'Work of this kind',
+      cta: 'Get a preliminary estimate',
+      ctaNote: 'Every project is calculated individually. We come, measure and name the price — a preliminary estimate with no obligation.',
+      pergolaTitle: 'Pergolas',
+      pergolaLead: 'Shade over a patio or an entrance, without turning the yard into a closed room.',
+      pergolaWhat: 'Posts and beams. Slats let air through and break the sun, and in winter they let the light in.',
+      pergolaMaterials: 'Wood, aluminium or a combination. Aluminium does not warp in damp; wood looks warmer and needs care.',
+      pergolaPrice: 'Area, wall-mounted or free-standing, type of cover, slope of the ground and removal of an old structure.',
+      canopyTitle: 'Canopies',
+      canopyLead: 'Cover from rain and sun over an entrance, a car or a terrace.',
+      canopyWhat: 'A canopy is more closed than a pergola: water leaves to a side chosen in advance, not onto your head.',
+      canopyMaterials: 'Steel or aluminium frame, solid cover or polycarbonate.',
+      canopyPrice: 'Span, slope, drainage and whether there is something to fix to in the wall.',
+      fenceTitle: 'Fences',
+      fenceLead: 'The edge of the plot: fewer looks from outside, no blank wall inside.',
+      fenceWhat: 'Posts, rails and infill. The gaps decide how exposed the yard is and how air passes.',
+      fenceMaterials: 'Wood, steel or a combination. Posts are always set in concrete.',
+      fencePrice: 'Length, height, drop along the plot, number of gates and the type of infill.',
+    },
+    about: {
+      title: 'About',
+      lead: 'Vladimir works in northern Israel. Pergolas, canopies and fences — wood, steel, combinations.',
+      trustFormula: 'Vladimir is the face of the project: he advises, takes the measurements and oversees the work. The installation is done by his permanent crew — no subcontractors and no middlemen.',
+      howTitle: 'How the work goes',
+      step1: 'Contact — you tell us what you want and send a photo of the place.',
+      step2: 'Measuring — we come, measure, and say what is possible and what is not.',
+      step3: 'Fabrication — we cut and prepare to the measurements taken.',
+      step4: 'Installation — we assemble, level it and clean up after ourselves.',
+      principlesTitle: 'Principles',
+      principle1: 'We do not promise a date we cannot keep. If something shifts, we say so in advance, not on the last day.',
+      principle2: 'Materials are chosen for the climate here, not for what is left in the store.',
+      principle3: 'The yard is left clean. That is part of the job, not a favour.',
+      guarantee: 'Guarantee',
+      guaranteeBody: 'All work carries a guarantee. It covers the structure and the installation; the term and conditions are fixed in the contract before the work starts.',
+    },
+    contact: {
+      title: 'Get in touch',
+      lead: 'We will answer in whichever way suits you.',
+      whatsapp: 'Write on WhatsApp',
+      call: 'Call',
+      formTitle: 'Leave a request',
+      priceHonesty: 'Every project is calculated individually. After a free measurement we name the price — a preliminary estimate with no obligation.',
+    },
+    home: {
+      heroKicker: 'Vladimir · Nof HaGalil',
+      heroTitle: 'Pergolas, canopies and fences',
+      heroLead: 'We come, we measure, we name the price. Then you decide.',
+      heroCta: 'Get a preliminary estimate',
+      heroCallLabel: 'Phone',
+      trustTitle: 'Why people trust us',
+      trustPoint2: 'Careful installation and honest timing. The time on site is shown on every project here, not just claimed.',
+      trustPoint3: 'Materials are chosen for the climate here: damp, sun and the sea nearby.',
+      latestTitle: 'Latest projects',
+      latestAll: 'All projects',
+      howTitle: 'How the work goes',
+      formTitle: 'Leave a request',
+      formLead: 'We will answer in whichever way suits you.',
+      principlesTitle: 'Principles',
+      faqTitle: 'Questions that come up',
+      finalTitle: 'Let us talk about your yard',
+      finalLead: 'Send a photo of the place and we will say what is possible there.',
+      mapTeaserTitle: 'Map of the work',
+      mapTeaserBody: 'See what has been built near you.',
+      mapTeaserCta: 'Open the map',
+    },
+    forms: {
+      name: 'Name',
+      namePlaceholder: 'How should we address you',
+      phone: 'Phone',
+      phonePlaceholder: '050 000 0000',
+      city: 'City',
+      cityPlaceholder: 'Optional',
+      comment: 'What you want to build',
+      submit: 'Send the request',
+      sending: 'Sending…',
+      consent: 'By sending you agree that we keep your name and phone in order to call you back.',
+      thanksTitle: 'Got it',
+      thanksBody: 'We will call you back. If it is urgent, write on WhatsApp — we answer faster there.',
+      sendAnother: 'Send another request',
+      errorPhone: 'A digit seems to be missing. Format: 050 000 0000',
+      errorName: 'How should we address you?',
+      rateLimited: 'Too many attempts — try again in an hour or write on WhatsApp.',
+      serverError: 'We could not send it. Write on WhatsApp — it arrives right away.',
+      offline: 'No connection. Write on WhatsApp — it arrives right away.',
+      whatsappFallback: 'Send via WhatsApp',
+    },
+    faq: [
+      { q: 'How much does it cost?', a: 'Every project is calculated individually. After a free measurement we name the price — a preliminary estimate with no obligation.' },
+      { q: 'Is there a guarantee?', a: 'All work carries a guarantee. It covers the structure and the installation; the term and conditions are fixed in the contract before the work starts.' },
+      { q: 'How long does it take?', a: 'Every project here shows how many days it took. A medium pergola is usually a few working days after fabrication.' },
+      { q: 'Wood or aluminium?', a: 'Aluminium does not warp in damp and needs less care. Wood looks warmer. A combination takes from each what suits the place.' },
+      { q: 'Do I need a permit?', a: 'It depends on the size and the distance to the plot boundary. At the measurement we will tell you how it stands for you.' },
+      { q: 'What about maintenance?', a: 'Aluminium — wash it. Wood — a protective coat every few years, depending on how much sun it gets.' },
+      { q: 'Where do you travel?', a: 'Nof HaGalil and around. Further out depends on the size of the job.' },
+      { q: 'How does payment work?', a: 'The terms are fixed in the contract before the work starts, so nothing surprises you halfway.' },
+      { q: 'Can something be changed along the way?', a: 'Better before fabrication: after cutting, a change costs time and material. We say in advance what can still be changed.' },
+      { q: 'Who cleans up afterwards?', a: 'We do. The yard is left clean — that is part of the job, not a favour.' },
+    ],
     nav: {
       label: 'Main navigation',
       home: 'Home',

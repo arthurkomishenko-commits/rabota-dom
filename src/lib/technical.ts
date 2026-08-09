@@ -33,5 +33,7 @@ export function formatTechnical(value: TechnicalValue, labels: UnitLabels): stri
       return value.code;
     case 'year':
       return String(value.value);
+    case 'plain':
+      return value.text;
   }
 }
