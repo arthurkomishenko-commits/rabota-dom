@@ -1,0 +1,86 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import Button from '../components/Button.astro';
+import { getDictionary } from '../data/dictionary';
+import { ratesAreCalibrated } from '../data/rates';
+import { ROUTES, WHATSAPP_URL, PHONE_HREF } from '../config/site';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+const locale = 'he' as const;
+const dict = getDictionary(locale);
+const t = dict.calculator;
+
+/**
+ * Пока ставки в draft, страница честно говорит «в калибровке» и не показывает
+ * ни одной цифры (бриф §6). В меню её тоже нет — `NAV_ORDER` о ней не знает.
+ * Это не заглушка «скоро»: это рабочее состояние с внятным выходом для человека.
+ */
+const calibrated = ratesAreCalibrated();
+---
+
+<PageLayout
+  locale={locale}
+  nav={dict.nav}
+  theme={dict.theme}
+  a11y={dict.a11y}
+  contact={dict.contact}
+  whatsappUrl={WHATSAPP_URL}
+  phoneHref={PHONE_HREF}
+  contactHref={getRelativeLocaleUrl(locale, ROUTES.contact)}
+  declarationHref={getRelativeLocaleUrl(locale, ROUTES.accessibility)}
+  title={`${t.title} — Rabota Dom`}
+  description={t.calibratingBody}
+>
+  <article class="calc">
+    <h1>{t.title}</h1>
+
+    {
+      !calibrated && (
+        <div class="calc__notice">
+          <h2>{t.calibrating}</h2>
+          <p>{t.calibratingBody}</p>
+          <p>{t.askInstead}</p>
+          <Button href={WHATSAPP_URL} rel="noopener" target="_blank">WhatsApp</Button>
+        </div>
+      )
+    }
+  </article>
+</PageLayout>
+
+<style>
+  .calc {
+    margin-inline: auto;
+    max-inline-size: 60rem;
+    padding-inline: 1.5rem;
+    padding-block: 2.5rem;
+  }
+
+  h1 {
+    margin: 0 0 1.5rem;
+    font-size: 1.875rem;
+    font-weight: 500;
+  }
+
+  .calc__notice {
+    border: 1px solid var(--border-metal);
+    border-inline-start: 3px solid var(--accent-wood);
+    border-radius: var(--radius-base);
+    background: var(--surface);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    max-inline-size: var(--measure);
+  }
+
+  .calc__notice h2 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  .calc__notice p {
+    margin: 0;
+  }
+</style>

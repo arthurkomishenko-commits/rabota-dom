@@ -1,5 +1,7 @@
 ---
 import PageLayout from '../../layouts/PageLayout.astro';
+import StructuredData from '../../components/StructuredData.astro';
+import { service } from '../../lib/structured-data';
 import ServicePage from '../../components/ServicePage.astro';
 import { getDictionary } from '../../data/dictionary';
 import { getWorks } from '../../data/works';
@@ -12,6 +14,14 @@ const t = dict.services;
 const works = (await getWorks(locale)).filter((work) => work.data.type === 'fence');
 
 const workHref = (slug: string) => getRelativeLocaleUrl(locale, `${ROUTES.portfolio}${slug}/`);
+const schema = service({
+  siteUrl: Astro.site?.href ?? '',
+  name: t.fenceTitle,
+  description: t.fenceLead,
+  providerName: 'Rabota Dom',
+  areaServed: [dict.about.lead.split('.')[0] ?? ''],
+});
+
 const contactHref = getRelativeLocaleUrl(locale, ROUTES.contact);
 ---
 
@@ -29,6 +39,7 @@ const contactHref = getRelativeLocaleUrl(locale, ROUTES.contact);
   description={t.fenceLead}
   current="services"
 >
+  <StructuredData data={schema} />
   <ServicePage
     title={t.fenceTitle}
     lead={t.fenceLead}

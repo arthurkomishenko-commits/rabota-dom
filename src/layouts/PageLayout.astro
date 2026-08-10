@@ -15,13 +15,14 @@ import SiteFooter from '../components/SiteFooter.astro';
 import AccessibilityPanel from '../components/AccessibilityPanel.astro';
 import StickyChannels from '../components/StickyChannels.astro';
 import type { Dictionary } from '../data/dictionary';
-import type { ROUTES, Locale } from '../config/site';
+import { PUBLIC_LAUNCH, type ROUTES, type Locale } from '../config/site';
 
 interface Props {
   locale: Locale;
   title: string;
   description?: string;
   current?: keyof typeof ROUTES;
+  /** По умолчанию — состояние запуска: до фриза все страницы закрыты. */
   noindex?: boolean;
   /**
    * Словарь приходит props'ом, а не импортом: слой layouts не имеет права
@@ -37,6 +38,7 @@ interface Props {
   phoneHref: string;
   contactHref: string;
   declarationHref: string;
+  ogCard?: string;
 }
 
 const {
@@ -44,7 +46,7 @@ const {
   title,
   description,
   current,
-  noindex = true,
+  noindex = !PUBLIC_LAUNCH,
   nav,
   theme,
   a11y,
@@ -53,10 +55,17 @@ const {
   phoneHref,
   contactHref,
   declarationHref,
+  ogCard,
 } = Astro.props;
 ---
 
-<BaseLayout locale={locale} title={title} description={description} noindex={noindex}>
+<BaseLayout
+  locale={locale}
+  title={title}
+  description={description}
+  noindex={noindex}
+  ogCard={ogCard}
+>
   <a class="skip" href="#main">{nav.skipToContent}</a>
   <SiteHeader locale={locale} nav={nav} theme={theme} current={current} />
   <main id="main" tabindex="-1">

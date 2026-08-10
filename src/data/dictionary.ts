@@ -223,6 +223,14 @@ export type Dictionary = {
     level: (n: number) => string;
   };
 
+  /** Калькулятор (F7). Пока ставки в draft — режим «в калибровке». */
+  calculator: {
+    title: string;
+    calibrating: string;
+    calibratingBody: string;
+    askInstead: string;
+  };
+
   /** Страница 404. */
   notFound: { title: string; body: string; toHome: string };
   scaffold: {
@@ -439,6 +447,12 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       end: 'סוף',
       langNavLabel: 'בחירת שפה',
     },
+    calculator: {
+      title: 'הערכת עלות',
+      calibrating: 'המחשבון בכיול',
+      calibratingBody: 'המספרים עדיין לא אושרו על ידי האומן, ולכן איננו מציגים אותם. להראות מחיר לא מאומת זה גרוע יותר מלא להראות כלום.',
+      askInstead: 'כתבו בוואטסאפ עם מידות ותמונה — נאמר טווח מיד.',
+    },
   },
   ru: {
     units: { m: 'м', m2: 'м²', lm: 'пог. м', mm: 'мм', pcs: 'шт', days: 'дней' },
@@ -641,6 +655,12 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       end: 'Конец',
       langNavLabel: 'Выбор языка',
     },
+    calculator: {
+      title: 'Оценка стоимости',
+      calibrating: 'Калькулятор в калибровке',
+      calibratingBody: 'Цифры ещё не подтверждены мастером, поэтому мы их не показываем. Показать неподтверждённую цену хуже, чем не показать никакой.',
+      askInstead: 'Напишите в WhatsApp размеры и фото места — назовём диапазон сразу.',
+    },
   },
   en: {
     units: { m: 'm', m2: 'm²', lm: 'lm', mm: 'mm', pcs: 'pcs', days: 'days' },
@@ -842,6 +862,12 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       start: 'Start',
       end: 'End',
       langNavLabel: 'Language',
+    },
+    calculator: {
+      title: 'Cost estimate',
+      calibrating: 'The calculator is being calibrated',
+      calibratingBody: 'The numbers are not confirmed by the master yet, so we do not show them. Showing an unconfirmed price is worse than showing none.',
+      askInstead: 'Send sizes and a photo on WhatsApp — we will name a range right away.',
     },
   },
 };

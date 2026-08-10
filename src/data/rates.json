@@ -1,0 +1,47 @@
+{
+  "_comment": "Ставки калькулятора. status=draft — страница работает в режиме «в калибровке» и скрыта из меню (бриф §6). Перевод в production: цифры подтверждает Владимир, вносит Артур, запись в DECISIONS. check:freeze не выпустит релиз, пока здесь draft.",
+  "schemaVersion": 1,
+  "status": "draft",
+  "currency": "ILS",
+  "_units": "Все суммы — целые агороты (ARCHITECTURE_PRINCIPLES §3). 100000 агорот = 1000 ₪.",
+  "pergola": {
+    "basePerSquareMeter": {
+      "wood": 90000,
+      "aluminium": 120000,
+      "combo": 105000
+    },
+    "coverFactor": {
+      "louvers": 1,
+      "polycarbonate": 1.1,
+      "solid": 1.2
+    },
+    "mountFactor": {
+      "wall": 1,
+      "freestanding": 1.15
+    },
+    "groundFactor": {
+      "flat": 1,
+      "slope": 1.12
+    },
+    "options": {
+      "demolition": 150000,
+      "led": 90000,
+      "drainage": 70000
+    },
+    "minTotal": 600000,
+    "limits": { "widthM": [2, 8], "depthM": [2, 8] }
+  },
+  "fence": {
+    "ratePerRunningMeter": {
+      "wood": { "1.2": 38000, "1.5": 45000, "1.8": 52000, "2.0": 60000 },
+      "metal": { "1.2": 46000, "1.5": 54000, "1.8": 62000, "2.0": 72000 },
+      "combo": { "1.2": 42000, "1.5": 50000, "1.8": 57000, "2.0": 66000 }
+    },
+    "fillFactor": { "gaps": 1, "solid": 1.15 },
+    "terrainFactor": { "flat": 1, "slope": 1.1 },
+    "options": { "gate": 180000, "driveGate": 450000 },
+    "minTotal": 400000,
+    "limits": { "lengthM": [5, 80] }
+  },
+  "_placeholders": "ВСЕ ЧИСЛА ВЫШЕ — ЗАГЛУШКИ. Они правдоподобны по порядку величины (ориентир Артура: около 1000 ₪/м² базы пергол), но не подтверждены мастером и не должны показываться как цена."
+}
