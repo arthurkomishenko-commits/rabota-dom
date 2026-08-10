@@ -12,6 +12,8 @@
 import BaseLayout from './BaseLayout.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import AccessibilityPanel from '../components/AccessibilityPanel.astro';
+import StickyChannels from '../components/StickyChannels.astro';
 import type { Dictionary } from '../data/dictionary';
 import type { ROUTES, Locale } from '../config/site';
 
@@ -28,9 +30,30 @@ interface Props {
    */
   nav: Dictionary['nav'];
   theme: Dictionary['theme'];
+  a11y: Dictionary['a11y'];
+  contact: Dictionary['contact'];
+  /** Адреса каналов и декларации — из конфига, компонент их не знает. */
+  whatsappUrl: string;
+  phoneHref: string;
+  contactHref: string;
+  declarationHref: string;
 }
 
-const { locale, title, description, current, noindex = true, nav, theme } = Astro.props;
+const {
+  locale,
+  title,
+  description,
+  current,
+  noindex = true,
+  nav,
+  theme,
+  a11y,
+  contact,
+  whatsappUrl,
+  phoneHref,
+  contactHref,
+  declarationHref,
+} = Astro.props;
 ---
 
 <BaseLayout locale={locale} title={title} description={description} noindex={noindex}>
@@ -40,6 +63,18 @@ const { locale, title, description, current, noindex = true, nav, theme } = Astr
     <slot />
   </main>
   <SiteFooter locale={locale} nav={nav} />
+
+  {/* Три равноправных канала — только на узких экранах (бриф §3). */}
+  <div class="sticky-slot">
+    <StickyChannels
+      label={contact.title}
+      whatsapp={{ label: contact.whatsapp, href: whatsappUrl }}
+      call={{ label: contact.call, href: phoneHref }}
+      request={{ label: contact.formTitle, href: contactHref }}
+    />
+  </div>
+
+  <AccessibilityPanel a11y={a11y} declarationHref={declarationHref} />
 </BaseLayout>
 
 <style>
@@ -67,5 +102,28 @@ const { locale, title, description, current, noindex = true, nav, theme } = Astr
 
   main:focus {
     outline: none;
+  }
+
+  /**
+   * Sticky-панель показывается только на узких экранах: на десктопе три канала
+   * уже есть в шапке и на странице контактов, и полоса внизу была бы шумом.
+   * Отступ снизу отдаётся телу страницы, иначе панель накрыла бы подвал.
+   */
+  .sticky-slot {
+    display: none;
+  }
+
+  @media (max-width: 48rem) {
+    .sticky-slot {
+      display: block;
+      position: fixed;
+      inset-inline: 0;
+      inset-block-end: 0;
+      z-index: 65;
+    }
+
+    :global(body) {
+      padding-block-end: 4rem;
+    }
   }
 </style>

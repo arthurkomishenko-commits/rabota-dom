@@ -60,6 +60,10 @@ const channels = [whatsapp, call, request];
     align-items: center;
     justify-content: center;
     text-align: center;
+    /* Крупный шрифт не должен распирать полосу: слово переносится. */
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+    hyphens: auto;
     /* Палец: цель не меньше 44px по короткой стороне. */
     min-block-size: 52px;
     padding-inline: 0.5rem;

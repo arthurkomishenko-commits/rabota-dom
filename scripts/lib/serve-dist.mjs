@@ -32,7 +32,7 @@ const MIME = {
   '.jpg': 'image/jpeg',
 };
 
-export function serveDist() {
+export function serveDist(port = 0) {
   const server = createServer((req, res) => {
     const pathname = decodeURIComponent(new URL(req.url ?? '/', 'http://x').pathname);
     const rel = pathname.startsWith(BASE) ? pathname.slice(BASE.length) : pathname.slice(1);
@@ -50,7 +50,7 @@ export function serveDist() {
   });
 
   return new Promise((resolve) => {
-    server.listen(0, '127.0.0.1', () => {
+    server.listen(port, '127.0.0.1', () => {
       const address = server.address();
       const port = typeof address === 'object' && address ? address.port : 0;
       const origin = `http://127.0.0.1:${port}`;

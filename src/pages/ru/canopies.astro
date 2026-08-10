@@ -3,7 +3,7 @@ import PageLayout from '../../layouts/PageLayout.astro';
 import ServicePage from '../../components/ServicePage.astro';
 import { getDictionary } from '../../data/dictionary';
 import { getWorks } from '../../data/works';
-import { ROUTES } from '../../config/site';
+import { ROUTES , WHATSAPP_URL, PHONE_HREF } from '../../config/site';
 import { getRelativeLocaleUrl } from 'astro:i18n';
 
 const locale = 'ru' as const;
@@ -19,6 +19,12 @@ const contactHref = getRelativeLocaleUrl(locale, ROUTES.contact);
   locale={locale}
   nav={dict.nav}
   theme={dict.theme}
+  a11y={dict.a11y}
+  contact={dict.contact}
+  whatsappUrl={WHATSAPP_URL}
+  phoneHref={PHONE_HREF}
+  contactHref={getRelativeLocaleUrl(locale, ROUTES.contact)}
+  declarationHref={getRelativeLocaleUrl(locale, ROUTES.accessibility)}
   title={`${t.canopyTitle} — Rabota Dom`}
   description={t.canopyLead}
   current="services"

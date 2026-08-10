@@ -1,0 +1,337 @@
+---
+/**
+ * Панель доступности (Норма Б, бриф §15, DEC-0016).
+ *
+ * Вход: словарь и адрес декларации. Выход: кнопка + диалог.
+ * Кто использует: `PageLayout` — то есть каждая страница.
+ *
+ * СВОЯ РЕАЛИЗАЦИЯ, БЕЗ СТОРОННИХ ВИДЖЕТОВ. Готовые оверлеи навешивают чужой
+ * скрипт на все страницы, ломают собственную клавиатурную навигацию и работают
+ * поверх разметки, а не вместе с ней. Здесь режимы — атрибуты на `<html>`
+ * поверх наших же токенов; вторая система стилей не появляется.
+ *
+ * Панель обязана быть доступной сама: используется нативный `<dialog>` —
+ * он держит фокус внутри и закрывается по Esc без рукописной ловушки.
+ * Рукописные ловушки фокуса почти всегда написаны неправильно.
+ *
+ * Состояние — один ключ в localStorage; применяется ДО первой отрисовки
+ * тем же inline-скриптом, что и тема (см. `BaseLayout`), поэтому не мигает.
+ */
+import type { Dictionary } from '../data/dictionary';
+
+interface Props {
+  a11y: Dictionary['a11y'];
+  declarationHref: string;
+}
+
+const { a11y, declarationHref } = Astro.props;
+
+/** Ступенчатые режимы: значение — индекс ступени. */
+const steps = [
+  { key: 'font', label: a11y.fontSize, levels: 3 },
+  { key: 'leading', label: a11y.lineHeight, levels: 2 },
+  { key: 'tracking', label: a11y.letterSpacing, levels: 2 },
+];
+
+/** Переключатели: включено или нет. */
+const toggles = [
+  { key: 'contrast', label: a11y.contrast, on: 'on' },
+  { key: 'grayscale', label: a11y.grayscale, on: 'on' },
+  { key: 'underline', label: a11y.underlineLinks, on: 'on' },
+  { key: 'focus', label: a11y.focusOutline, on: 'on' },
+  { key: 'motion', label: a11y.stopMotion, on: 'off' },
+  { key: 'dyslexia', label: a11y.dyslexia, on: 'on' },
+];
+---
+
+<div class="a11y-panel">
+  <button type="button" class="a11y-open" data-a11y-open aria-label={a11y.open}>
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="4.5" r="2" fill="currentColor" />
+      <path
+        d="M4 8h16M12 8v6m0 0-3.5 7M12 14l3.5 7"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+      />
+    </svg>
+  </button>
+
+  <dialog class="a11y-dialog" data-a11y-dialog aria-label={a11y.title}>
+    <div class="a11y-dialog__head">
+      <h2>{a11y.title}</h2>
+      <button type="button" data-a11y-close aria-label={a11y.close}>✕</button>
+    </div>
+
+    <div class="a11y-dialog__body">
+      {
+        steps.map((step) => (
+          <div class="a11y-row" role="group" aria-label={step.label}>
+            <span class="a11y-row__label">{step.label}</span>
+            <div class="a11y-row__levels">
+              <button type="button" data-a11y-step={step.key} data-level="0">
+                0
+              </button>
+              {Array.from({ length: step.levels }, (_, i) => (
+                <button
+                  type="button"
+                  data-a11y-step={step.key}
+                  data-level={String(i + 1)}
+                  aria-label={a11y.level(i + 1)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))
+      }
+
+      {
+        toggles.map((toggle) => (
+          <div class="a11y-row">
+            <label class="a11y-switch">
+              <input type="checkbox" data-a11y-toggle={toggle.key} data-on={toggle.on} />
+              <span>{toggle.label}</span>
+            </label>
+          </div>
+        ))
+      }
+
+      <p class="a11y-note">{a11y.dyslexiaNote}</p>
+
+      <div class="a11y-dialog__foot">
+        <button type="button" data-a11y-reset>{a11y.reset}</button>
+        <a href={declarationHref}>{a11y.declaration}</a>
+      </div>
+    </div>
+  </dialog>
+</div>
+
+<script>
+  const STORAGE_KEY = 'a11y';
+  const root = document.documentElement;
+  const dialog = document.querySelector<HTMLDialogElement>('[data-a11y-dialog]');
+  const openButton = document.querySelector<HTMLButtonElement>('[data-a11y-open]');
+
+  type State = Record<string, string>;
+
+  const read = (): State => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
+    } catch {
+      return {};
+    }
+  };
+
+  const write = (state: State) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // Приватный режим: настройки применятся, но не переживут перезагрузку.
+    }
+  };
+
+  const apply = (state: State) => {
+    for (const attr of [...root.attributes]) {
+      if (attr.name.startsWith('data-a11y-')) root.removeAttribute(attr.name);
+    }
+    for (const [key, value] of Object.entries(state)) {
+      if (value) root.setAttribute(`data-a11y-${key}`, value);
+    }
+  };
+
+  const sync = (state: State) => {
+    for (const button of document.querySelectorAll<HTMLElement>('[data-a11y-step]')) {
+      const key = button.dataset.a11yStep!;
+      const level = button.dataset.level!;
+      const active = (state[key] ?? '0') === level;
+      button.setAttribute('aria-pressed', String(active));
+    }
+    for (const input of document.querySelectorAll<HTMLInputElement>('[data-a11y-toggle]')) {
+      const key = input.dataset.a11yToggle!;
+      input.checked = Boolean(state[key]);
+    }
+  };
+
+  let state = read();
+  apply(state);
+  sync(state);
+
+  const update = (next: State) => {
+    state = next;
+    apply(state);
+    sync(state);
+    write(state);
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-a11y-step]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const key = button.dataset.a11yStep!;
+      const level = button.dataset.level!;
+      const next = { ...state };
+      if (level === '0') delete next[key];
+      else next[key] = level;
+      update(next);
+    });
+  });
+
+  document.querySelectorAll<HTMLInputElement>('[data-a11y-toggle]').forEach((input) => {
+    input.addEventListener('change', () => {
+      const key = input.dataset.a11yToggle!;
+      const on = input.dataset.on!;
+      const next = { ...state };
+      if (input.checked) next[key] = on;
+      else delete next[key];
+      update(next);
+    });
+  });
+
+  document.querySelector('[data-a11y-reset]')?.addEventListener('click', () => update({}));
+
+  openButton?.addEventListener('click', () => dialog?.showModal());
+  document.querySelector('[data-a11y-close]')?.addEventListener('click', () => dialog?.close());
+  // Фокус возвращается на кнопку — иначе после закрытия он уедет в начало страницы.
+  dialog?.addEventListener('close', () => openButton?.focus());
+  dialog?.addEventListener('click', (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+</script>
+
+<style>
+  .a11y-open {
+    position: fixed;
+    inset-block-end: 1rem;
+    /* Противоположный от sticky-панели инлайн-угол (бриф §15, конфликт разведён). */
+    inset-inline-start: 1rem;
+    z-index: 70;
+    inline-size: 48px;
+    block-size: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-metal);
+    border-radius: var(--radius-base);
+    background: var(--surface);
+    color: var(--text-main);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.12);
+  }
+
+  .a11y-dialog {
+    border: 1px solid var(--border-metal);
+    border-radius: var(--radius-base);
+    background: var(--surface);
+    color: var(--text-main);
+    inline-size: min(28rem, 92vw);
+    padding: 0;
+  }
+
+  .a11y-dialog::backdrop {
+    background: rgb(0 0 0 / 0.6);
+  }
+
+  .a11y-dialog__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-block-end: 1px solid var(--border-metal);
+  }
+
+  .a11y-dialog__head h2 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  .a11y-dialog__head button,
+  .a11y-dialog__foot button {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+    font: inherit;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: 1px solid var(--btn-border);
+    border-radius: var(--radius-base);
+    cursor: pointer;
+  }
+
+  .a11y-dialog__body {
+    padding: 1rem 1.25rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+
+  .a11y-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .a11y-row__label {
+    font-size: 0.9375rem;
+  }
+
+  .a11y-row__levels {
+    display: flex;
+    gap: 0.375rem;
+  }
+
+  .a11y-row__levels button {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+    font: inherit;
+    background: var(--surface);
+    color: var(--text-main);
+    border: 1px solid var(--border-metal);
+    border-radius: var(--radius-base);
+    cursor: pointer;
+  }
+
+  .a11y-row__levels button[aria-pressed='true'] {
+    background: var(--text-main);
+    color: var(--surface);
+    border-color: var(--text-main);
+  }
+
+  .a11y-switch {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    cursor: pointer;
+    min-block-size: 44px;
+    font-size: 0.9375rem;
+  }
+
+  .a11y-switch input {
+    inline-size: 20px;
+    block-size: 20px;
+  }
+
+  .a11y-note {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    border-block-start: 1px solid var(--border-metal);
+    padding-block-start: 0.875rem;
+  }
+
+  .a11y-dialog__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .a11y-dialog__foot a {
+    color: var(--accent-text);
+    font-size: 0.875rem;
+  }
+</style>

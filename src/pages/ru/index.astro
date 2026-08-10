@@ -18,6 +18,12 @@ const workHref = (slug: string) => getRelativeLocaleUrl(locale, `${ROUTES.portfo
   locale={locale}
   nav={dict.nav}
   theme={dict.theme}
+  a11y={dict.a11y}
+  contact={dict.contact}
+  whatsappUrl={WHATSAPP_URL}
+  phoneHref={PHONE_HREF}
+  contactHref={getRelativeLocaleUrl(locale, ROUTES.contact)}
+  declarationHref={getRelativeLocaleUrl(locale, ROUTES.accessibility)}
   title={`Rabota Dom — ${dict.home.heroTitle}`}
   description={dict.home.heroLead}
   current="home"

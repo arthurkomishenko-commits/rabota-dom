@@ -121,8 +121,16 @@ const { locale, nav, theme, current } = Astro.props;
 
   .langs {
     display: flex;
-    gap: 0.75rem;
+    /* Три названия языков при крупном шрифте не влезают в строку —
+       перенос обязателен, иначе шапка выносит документ за край экрана. */
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
     font-size: 0.875rem;
+    min-inline-size: 0;
+  }
+
+  .header__tools {
+    min-inline-size: 0;
   }
 
   .langs a {

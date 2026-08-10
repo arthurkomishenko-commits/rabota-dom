@@ -114,8 +114,9 @@ const principles = [dict.about.principle1, dict.about.principle2, dict.about.pri
       <div class="band__inner">
         <h2>{t.latestTitle}</h2>
         <div class="latest">
-          {works.slice(0, 3).map((work) => (
+          {works.slice(0, 3).map((work, index) => (
             <WorkCard
+              priority={index === 0}
               title={work.data.title}
               city={work.data.city}
               year={work.data.year}
@@ -123,12 +124,7 @@ const principles = [dict.about.principle1, dict.about.principle2, dict.about.pri
               material={dict.materials[work.data.material]}
               demoLabel={work.data.demo ? dict.demo.badge : undefined}
               href={workHref(work.data.slug)}
-              photo={{
-                src: work.data.photos[0]!.src.src,
-                width: work.data.photos[0]!.src.width,
-                height: work.data.photos[0]!.src.height,
-                alt: work.data.photos[0]!.alt,
-              }}
+              photo={{ image: work.data.photos[0]!.src, alt: work.data.photos[0]!.alt }}
               metrics={work.data.metrics}
             />
           ))}

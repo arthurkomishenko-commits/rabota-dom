@@ -4,8 +4,12 @@
  *
  * GitHub Pages отдаёт один и тот же файл для любого несуществующего адреса,
  * поэтому выбрать язык на сборке нельзя: адрес известен только в браузере.
- * Разметка содержит все три версии, скрипт оставляет подходящую по префиксу
- * пути, а если скрипта нет — остаётся ивритская, язык сайта по умолчанию.
+ *
+ * Разметка содержит все три версии, но по умолчанию видна только ивритская —
+ * язык сайта по умолчанию. Скрипт показывает подходящую по префиксу пути
+ * и убирает остальные. Без скрипта остаётся ровно одна версия и ровно один H1:
+ * первая редакция оставляла без JS три заголовка первого уровня и ломала
+ * структуру страницы для скринридера. Найдено полировкой, BUG-0010.
  *
  * Единственная страница без `noindex`: её и так не индексируют, а помечать
  * робота на 404 бессмысленно. Исключение зафиксировано в `check:surface`.
@@ -27,7 +31,13 @@ const variants = LOCALES.map((locale) => ({
   <main class="notfound">
     {
       variants.map((variant) => (
-        <section class="notfound__variant" lang={variant.locale} dir={variant.dir} data-locale={variant.locale}>
+        <section
+          class="notfound__variant"
+          lang={variant.locale}
+          dir={variant.dir}
+          data-locale={variant.locale}
+          hidden={variant.locale !== 'he'}
+        >
           <p class="notfound__code" dir="ltr">404</p>
           <h1>{variant.t.title}</h1>
           <p>{variant.t.body}</p>
@@ -44,7 +54,8 @@ const variants = LOCALES.map((locale) => ({
   const locale = /\/ru(\/|$)/.test(path) ? 'ru' : /\/en(\/|$)/.test(path) ? 'en' : 'he';
 
   document.querySelectorAll<HTMLElement>('[data-locale]').forEach((node) => {
-    if (node.dataset.locale !== locale) node.remove();
+    if (node.dataset.locale === locale) node.hidden = false;
+    else node.remove();
   });
 
   const root = document.documentElement;
@@ -60,10 +71,8 @@ const variants = LOCALES.map((locale) => ({
     padding-block: 4rem;
   }
 
-  .notfound__variant + .notfound__variant {
-    margin-block-start: 3rem;
-    border-block-start: 1px solid var(--border-metal);
-    padding-block-start: 3rem;
+  .notfound__variant[hidden] {
+    display: none;
   }
 
   .notfound__code {

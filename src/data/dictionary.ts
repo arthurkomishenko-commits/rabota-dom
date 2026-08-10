@@ -203,6 +203,26 @@ export type Dictionary = {
     whatsappFallback: string;
   };
 
+  /** Панель доступности (Норма Б, бриф §15). */
+  a11y: {
+    open: string;
+    title: string;
+    close: string;
+    fontSize: string;
+    lineHeight: string;
+    letterSpacing: string;
+    contrast: string;
+    grayscale: string;
+    underlineLinks: string;
+    focusOutline: string;
+    stopMotion: string;
+    dyslexia: string;
+    dyslexiaNote: string;
+    reset: string;
+    declaration: string;
+    level: (n: number) => string;
+  };
+
   /** Страница 404. */
   notFound: { title: string; body: string; toHome: string };
   scaffold: {
@@ -340,6 +360,24 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       offline: 'אין חיבור. כתבו בוואטסאפ — זה יגיע מיד.',
       whatsappFallback: 'שליחה בוואטסאפ',
     },
+    a11y: {
+      open: 'הגדרות נגישות',
+      title: 'נגישות',
+      close: 'סגירה',
+      fontSize: 'גודל טקסט',
+      lineHeight: 'רווח בין שורות',
+      letterSpacing: 'רווח בין אותיות',
+      contrast: 'ניגודיות מוגברת',
+      grayscale: 'גווני אפור',
+      underlineLinks: 'קו תחתון לכל הקישורים',
+      focusOutline: 'מסגרת פוקוס מודגשת',
+      stopMotion: 'עצירת אנימציות',
+      dyslexia: 'גופן לדיסלקציה',
+      dyslexiaNote: 'הגופן מכסה אותיות לטיניות בלבד. לעברית ולרוסית אין גופן דיסלקציה חופשי — שם מפצים בגודל וברווחים.',
+      reset: 'איפוס הכול',
+      declaration: 'הצהרת נגישות',
+      level: (n: number) => `רמה ${n}`,
+    },
     faq: [
       { q: 'כמה זה עולה?', a: 'כל פרויקט מחושב לגופו. אחרי מדידה חינם נאמר מחיר — הערכה ראשונית בלי התחייבות.' },
       { q: 'יש אחריות?', a: 'על כל העבודות ניתנת אחריות. היא מכסה את המבנה ואת ההתקנה; משך האחריות והתנאים נקבעים בהסכם לפני תחילת העבודה.' },
@@ -382,7 +420,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       accessibilityDone: 'מה כבר נעשה',
       accessibilityDoneBody: 'סימון עם משמעות, לא ערימת קופסאות. כל פקד נגיש מהמקלדת ורואים איפה הפוקוס. לתמונות יש תיאור טקסטואלי. הניגודיות נמדדת ולא מוערכת בעין. יש מצב בהיר וכהה, והבחירה נשמרת. אנימציות נעצרות אם המערכת מבקשת זאת.',
       accessibilityLimits: 'מה עדיין לא מכוסה',
-      accessibilityLimitsBody: 'מצב הגופן לדיסלקציה מכסה אותיות לטיניות וקיריליות. גופן חופשי לדיסלקציה בעברית אינו קיים, ולכן בעברית אנחנו מפצים בגודל וברווחים. זה פחות ממה שהיינו רוצים, ואנחנו אומרים זאת בגלוי.',
+      accessibilityLimitsBody: 'מצב הגופן לדיסלקציה מכסה אותיות לטיניות בלבד: גופן חופשי עם עברית או קירילית אינו קיים. לעברית ולרוסית אנחנו מפצים בגודל וברווחים. זה פחות ממה שהיינו רוצים, ואנחנו אומרים זאת בגלוי ולא משמיטים.',
       accessibilityContact: 'מצאתם תקלה — כתבו לנו. נבדוק ונתקן.',
       updated: 'עודכן',
     },
@@ -524,6 +562,24 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       offline: 'Нет связи. Напишите в WhatsApp — дойдёт сразу.',
       whatsappFallback: 'Отправить через WhatsApp',
     },
+    a11y: {
+      open: 'Настройки доступности',
+      title: 'Доступность',
+      close: 'Закрыть',
+      fontSize: 'Размер текста',
+      lineHeight: 'Межстрочный интервал',
+      letterSpacing: 'Межбуквенный интервал',
+      contrast: 'Усиленный контраст',
+      grayscale: 'Оттенки серого',
+      underlineLinks: 'Подчёркивать все ссылки',
+      focusOutline: 'Усиленный контур фокуса',
+      stopMotion: 'Остановить анимации',
+      dyslexia: 'Шрифт для дислексии',
+      dyslexiaNote: 'Шрифт покрывает только латиницу. Для русского и иврита свободного шрифта для дислексии нет — там компенсируем размером и интервалами.',
+      reset: 'Сбросить всё',
+      declaration: 'Декларация доступности',
+      level: (n: number) => `Ступень ${n}`,
+    },
     faq: [
       { q: 'Сколько это стоит?', a: 'Каждый проект рассчитывается индивидуально. После бесплатного замера назовём цену — предварительная оценка без обязательств.' },
       { q: 'Есть гарантия?', a: 'На все работы предоставляется гарантия. Она покрывает конструкцию и монтаж; срок и условия фиксируются в договоре перед началом работ.' },
@@ -566,7 +622,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       accessibilityDone: 'Что уже сделано',
       accessibilityDoneBody: 'Разметка со смыслом, а не набор блоков. Каждый элемент управления достижим с клавиатуры, и видно, где сейчас фокус. У изображений есть текстовые описания. Контраст проверяется измерением, а не на глаз. Есть светлая и тёмная темы, и выбор сохраняется. Анимации отключаются, если так настроена система.',
       accessibilityLimits: 'Что пока не покрыто',
-      accessibilityLimitsBody: 'Режим шрифта для дислексии работает для латиницы и кириллицы. Свободного шрифта для дислексии на иврите не существует, поэтому для иврита мы компенсируем размером и интервалами — это меньше, чем хотелось бы, и мы говорим об этом прямо.',
+      accessibilityLimitsBody: 'Режим шрифта для дислексии работает только для латиницы: свободной гарнитуры с кириллицей или ивритом не существует. Для русского и иврита мы компенсируем размером и интервалами — это меньше, чем хотелось бы, и мы говорим об этом прямо, а не умалчиваем.',
       accessibilityContact: 'Нашли проблему — напишите. Разберёмся и исправим.',
       updated: 'Обновлено',
     },
@@ -708,6 +764,24 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       offline: 'No connection. Write on WhatsApp — it arrives right away.',
       whatsappFallback: 'Send via WhatsApp',
     },
+    a11y: {
+      open: 'Accessibility settings',
+      title: 'Accessibility',
+      close: 'Close',
+      fontSize: 'Text size',
+      lineHeight: 'Line spacing',
+      letterSpacing: 'Letter spacing',
+      contrast: 'Stronger contrast',
+      grayscale: 'Greyscale',
+      underlineLinks: 'Underline all links',
+      focusOutline: 'Stronger focus outline',
+      stopMotion: 'Stop animations',
+      dyslexia: 'Dyslexia font',
+      dyslexiaNote: 'The font covers Latin only. No free dyslexia font exists for Cyrillic or Hebrew — there we compensate with size and spacing.',
+      reset: 'Reset everything',
+      declaration: 'Accessibility statement',
+      level: (n: number) => `Level ${n}`,
+    },
     faq: [
       { q: 'How much does it cost?', a: 'Every project is calculated individually. After a free measurement we name the price — a preliminary estimate with no obligation.' },
       { q: 'Is there a guarantee?', a: 'All work carries a guarantee. It covers the structure and the installation; the term and conditions are fixed in the contract before the work starts.' },
@@ -750,7 +824,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       accessibilityDone: 'What is already done',
       accessibilityDoneBody: 'Markup with meaning, not a pile of boxes. Every control is reachable by keyboard and the focus is visible. Images carry text descriptions. Contrast is measured, not guessed. There are light and dark themes, and the choice is remembered. Animations stop if the system asks for it.',
       accessibilityLimits: 'What is not covered yet',
-      accessibilityLimitsBody: 'The dyslexia font mode covers Latin and Cyrillic. No free dyslexia font exists for Hebrew, so for Hebrew we compensate with size and spacing. That is less than we would like, and we say so plainly.',
+      accessibilityLimitsBody: 'The dyslexia font mode covers Latin only: no free typeface exists that carries Cyrillic or Hebrew. For Russian and Hebrew we compensate with size and spacing. That is less than we would like, and we say so plainly rather than leaving it out.',
       accessibilityContact: 'Found a problem? Write to us. We will look into it and fix it.',
       updated: 'Updated',
     },

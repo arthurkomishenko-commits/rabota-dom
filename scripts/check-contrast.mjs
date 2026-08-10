@@ -17,6 +17,35 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CSS = readFileSync(join(ROOT, 'src/styles/variables.css'), 'utf8');
+const GLOBAL = readFileSync(join(ROOT, 'src/styles/global.css'), 'utf8');
+
+/**
+ * Режим «усиленный контраст» — отдельный вариант токенов (Норма Б, бриф §15).
+ * Он обязан проходить ту же измеримую проверку, что и обычная тема: иначе
+ * «усиление» остаётся словом на кнопке. Значения читаются из global.css,
+ * то есть из реализации, а не из копии в этом скрипте.
+ */
+function a11yBlock(selector) {
+  const block = GLOBAL.split(selector)[1]?.split('}')[0] ?? '';
+  const pick = (name) => block.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{3,8})`))?.[1];
+  return {
+    bg: pick('bg'),
+    surface: pick('surface'),
+    'text-main': pick('text-main'),
+    'text-muted': pick('text-muted'),
+    'border-metal': pick('border-metal'),
+    'accent-text': pick('accent-text'),
+    'accent-wood': pick('accent-wood'),
+  };
+}
+
+const A11Y_VARIANTS = [
+  { label: 'усиленный контраст · светлая', tokens: a11yBlock("[data-a11y-contrast='on'] {") },
+  {
+    label: 'усиленный контраст · тёмная',
+    tokens: a11yBlock("[data-a11y-contrast='on'][data-theme='dark'] {"),
+  },
+];
 
 /** Достаёт `--имя: #hex;` из источника токенов. */
 function token(name) {
@@ -110,6 +139,37 @@ for (const theme of ['light', 'dark']) {
   for (const [label, fg, bg, where] of informational(theme)) {
     console.log(
       `· ${label.padEnd(36)} ${fg} на ${bg}  ${ratio(fg, bg).toFixed(2)} : 1  (справочно — ${where})`,
+    );
+  }
+}
+
+// ── Режимы панели доступности ────────────────────────────────────────────────
+for (const variant of A11Y_VARIANTS) {
+  const t = variant.tokens;
+  if (!t.bg) {
+    failed += 1;
+    notes.push(`${variant.label}: токены не найдены в global.css`);
+    continue;
+  }
+
+  console.log(`\n── ${variant.label} ──`);
+  const checks = [
+    ['основной текст на фоне', t['text-main'], t.bg, 4.5],
+    ['вторичный текст на фоне', t['text-muted'], t.bg, 4.5],
+    ['акцентный текст на поверхности', t['accent-text'], t.surface, 4.5],
+    ['граница как элемент управления', t['border-metal'], t.surface, 3.0],
+    ['фокус-кольцо на фоне', t['accent-wood'], t.bg, 3.0],
+  ];
+
+  for (const [label, fg, bg, min] of checks) {
+    const value = ratio(fg, bg);
+    const ok = value >= min;
+    if (!ok) {
+      failed += 1;
+      notes.push(`${variant.label}: ${label} — ${value.toFixed(2)} при пороге ${min}`);
+    }
+    console.log(
+      `${ok ? '✓' : '✗'} ${label.padEnd(36)} ${fg} на ${bg}  ${value.toFixed(2)} : 1  (мин ${min})`,
     );
   }
 }

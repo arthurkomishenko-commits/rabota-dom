@@ -13,6 +13,7 @@
  * Отзыв показывается только при наличии согласия — это гарантирует схема
  * (`consent: literal(true)`), здесь достаточно проверить наличие.
  */
+import { Image } from 'astro:assets';
 import TechnicalValue from './TechnicalValue.astro';
 import MaterialTag from './MaterialTag.astro';
 import DemoBadge from './DemoBadge.astro';
@@ -83,11 +84,13 @@ const data = work.data;
               data-lightbox-open={index}
               aria-label={`${t.openPhoto}: ${photo.alt}`}
             >
-              <img
-                src={photo.src.src}
+              <Image
+                src={photo.src}
                 alt={photo.alt}
-                width={photo.src.width}
-                height={photo.src.height}
+                widths={[320, 480, 640]}
+                sizes="(max-width: 48rem) 90vw, 240px"
+                format="webp"
+                quality={72}
                 decoding="async"
                 loading="lazy"
               />

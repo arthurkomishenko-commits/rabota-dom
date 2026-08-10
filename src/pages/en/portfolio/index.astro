@@ -3,7 +3,7 @@ import PageLayout from '../../../layouts/PageLayout.astro';
 import PortfolioList from '../../../components/PortfolioList.astro';
 import { getDictionary } from '../../../data/dictionary';
 import { getWorks } from '../../../data/works';
-import { ROUTES } from '../../../config/site';
+import { ROUTES , WHATSAPP_URL, PHONE_HREF } from '../../../config/site';
 import { getRelativeLocaleUrl } from 'astro:i18n';
 
 const locale = 'en' as const;
@@ -19,6 +19,12 @@ const workHref = (slug: string) => getRelativeLocaleUrl(locale, `${ROUTES.portfo
   locale={locale}
   nav={dict.nav}
   theme={dict.theme}
+  a11y={dict.a11y}
+  contact={dict.contact}
+  whatsappUrl={WHATSAPP_URL}
+  phoneHref={PHONE_HREF}
+  contactHref={getRelativeLocaleUrl(locale, ROUTES.contact)}
+  declarationHref={getRelativeLocaleUrl(locale, ROUTES.accessibility)}
   title={`${t.title} — Rabota Dom`}
   description={t.intro}
   current="portfolio"

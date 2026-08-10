@@ -50,6 +50,9 @@ jobs:
       - name: Целостность контента
         run: npm run check:content
 
+      - name: Тесты Worker (на моках, без секретов)
+        run: npm run test:worker
+
       - name: Самотест проверок
         run: npm run check:selftest
 
@@ -68,6 +71,36 @@ jobs:
         uses: actions/upload-pages-artifact@v5
         with:
           path: dist
+
+  lighthouse:
+    name: Lighthouse (пороги брифа §10)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      # Прогон идёт ЗДЕСЬ, а не на машине разработчика: локальные замеры
+      # шумят на десятки пунктов из-за фоновой нагрузки — одна и та же
+      # страница без скриптов давала 98, 83 и 71. Гейт, зависящий от того,
+      # что ещё запущено на ноутбуке, гейтом не является.
+      - name: Lighthouse
+        run: npm run lhci
+
+      - name: Отчёты Lighthouse
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: lighthouse
+          path: docs/evidence/f3/lhci
+          if-no-files-found: ignore
 
   deploy:
     name: Деплой на Pages

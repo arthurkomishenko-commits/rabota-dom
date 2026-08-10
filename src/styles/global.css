@@ -132,3 +132,122 @@
     background-color: transparent;
   }
 }
+
+/**
+ * ── Режимы панели доступности (Норма Б, бриф §15) ──────────────────────────
+ *
+ * Все режимы — классы и переменные на `<html>` ПОВЕРХ существующих токенов.
+ * Второй системы стилей не заводится: если бы режимы переопределяли компоненты
+ * точечно, дизайн-система раздвоилась бы и разъехалась при первой же правке.
+ *
+ * Состояние ставится до первой отрисовки тем же inline-скриптом, что и тема,
+ * поэтому переключение не мигает.
+ */
+
+/* Размер текста: три ступени поверх базового кегля локали. */
+:root[data-a11y-font='1'] {
+  --font-size-base: 18px;
+}
+:root[data-a11y-font='2'] {
+  --font-size-base: 20px;
+}
+:root[data-a11y-font='3'] {
+  --font-size-base: 22px;
+}
+:root:lang(he)[data-a11y-font='1'] {
+  --font-size-base: 20px;
+}
+:root:lang(he)[data-a11y-font='2'] {
+  --font-size-base: 22px;
+}
+:root:lang(he)[data-a11y-font='3'] {
+  --font-size-base: 24px;
+}
+
+:root[data-a11y-leading='1'] {
+  --line-height-base: 1.8;
+}
+:root[data-a11y-leading='2'] {
+  --line-height-base: 2.1;
+}
+
+:root[data-a11y-tracking='1'] {
+  --a11y-tracking: 0.06em;
+}
+:root[data-a11y-tracking='2'] {
+  --a11y-tracking: 0.12em;
+}
+
+[data-a11y-tracking] body {
+  letter-spacing: var(--a11y-tracking, normal);
+}
+
+/**
+ * Усиленный контраст — отдельный ВАРИАНТ ТОКЕНОВ, а не фильтр поверх картинки.
+ * Значения проходят ту же измеримую проверку, что и обычная тема
+ * (`npm run check:contrast`), иначе это была бы иллюзия улучшения.
+ */
+:root[data-a11y-contrast='on'] {
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --text-main: #000000;
+  --text-muted: #26303d;
+  --border-metal: #26303d;
+  --accent-text: #7a3612;
+  --accent-wood: #7a3612;
+}
+
+:root[data-a11y-contrast='on'][data-theme='dark'] {
+  --bg: #000000;
+  --surface: #000000;
+  --text-main: #ffffff;
+  --text-muted: #e6edf5;
+  --border-metal: #e6edf5;
+  --accent-text: #ffb27a;
+  --accent-wood: #ffb27a;
+}
+
+/* Оттенки серого. Применяется к содержимому, но не к самой панели. */
+:root[data-a11y-grayscale='on'] body > *:not(.a11y-panel) {
+  filter: grayscale(100%);
+}
+
+:root[data-a11y-underline='on'] a {
+  text-decoration: underline;
+}
+
+:root[data-a11y-focus='on'] :focus-visible {
+  outline: 4px solid var(--accent-wood);
+  outline-offset: 3px;
+}
+
+/**
+ * Остановка анимаций. `!important` здесь оправдан: это явная просьба
+ * пользователя, которая обязана перебивать любое оформление.
+ */
+:root[data-a11y-motion='off'] *,
+:root[data-a11y-motion='off'] *::before,
+:root[data-a11y-motion='off'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/**
+ * Шрифт для дислексии. Файл грузится ТОЛЬКО когда режим включён:
+ * @font-face внутри условия загрузится, лишь если правило кем-то применяется.
+ * Иврит этим шрифтом не покрыт — для него компенсация размером и интервалами,
+ * и об этом прямо сказано в декларации (бриф §15).
+ */
+:root[data-a11y-dyslexia='on'] {
+  --font-stack: 'OpenDyslexic', 'Rubik Variable', system-ui, sans-serif;
+  --line-height-base: 1.9;
+}
+
+:root[data-a11y-dyslexia='on']:lang(he) {
+  /* Гарнитуры нет — компенсируем читаемость размером и воздухом. */
+  --font-stack: 'Rubik Variable', system-ui, sans-serif;
+  --font-size-base: 22px;
+  --line-height-base: 2;
+}

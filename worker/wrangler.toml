@@ -1,0 +1,17 @@
+# Конфигурация Worker'а. Секретов здесь нет и быть не может:
+# токен и chat_id кладутся через `wrangler secret put` (см. README.md).
+
+name = "rabota-dom-api"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+
+# Адреса, которым разрешён CORS. Пусто — запросы не пройдут ни с одного сайта.
+# После переезда на домен добавляется он, через запятую.
+[vars]
+ALLOWED_ORIGINS = "https://arthurkomishenko-commits.github.io"
+
+# Хранилище счётчиков частоты. id подставляется после
+# `wrangler kv namespace create RATE_LIMIT_KV` (шаг 3 инструкции).
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "PLACEHOLDER_KV_ID"

@@ -212,6 +212,11 @@ const messages = {
     gap: 1rem;
   }
 
+  /**
+   * Ловушка спрятана, но остаётся в потоке документа для бота.
+   * Поле внутри обязано ужиматься вместе с ней: иначе при крупном шрифте
+   * инпут получает собственную ширину и растягивает страницу.
+   */
   .lead__trap {
     position: absolute;
     inline-size: 1px;
@@ -219,6 +224,11 @@ const messages = {
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
+  }
+
+  .lead__trap input {
+    inline-size: 1px;
+    min-inline-size: 0;
   }
 
   .lead__consent {

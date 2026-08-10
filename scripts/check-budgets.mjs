@@ -23,7 +23,16 @@ const BUDGETS = [
       'rubik-hebrew-wght-normal.woff2',
       'rubik-cyrillic-wght-normal.woff2',
       'rubik-latin-wght-normal.woff2',
+      'opendyslexic-latin-400-normal.woff2',
     ],
+    /**
+     * Шрифт дислексии не лежит в критическом пути: его @font-face объявлен
+     * внутри селектора режима, поэтому файл скачивается только при включении.
+     * Лимит 40 КБ здесь неприменим — он про то, что грузится всегда.
+     * Собственный потолок оставлен, чтобы «только при включении» не стало
+     * оправданием для мегабайта.
+     */
+    overrides: { 'opendyslexic-latin-400-normal.woff2': 160 },
   },
 ];
 
@@ -128,9 +137,10 @@ for (const budget of BUDGETS) {
 
   for (const file of files.sort()) {
     const kb = statSync(join(budget.dir, file)).size / 1024;
-    const ok = kb <= budget.maxKb;
+    const limit = budget.overrides?.[file] ?? budget.maxKb;
+    const ok = kb <= limit;
     if (!ok) failed = true;
-    console.log(`${ok ? '✓' : '✗'} ${file.padEnd(34)} ${kb.toFixed(1).padStart(6)} КБ / ${budget.maxKb} КБ`);
+    console.log(`${ok ? '✓' : '✗'} ${file.padEnd(38)} ${kb.toFixed(1).padStart(6)} КБ / ${limit} КБ`);
   }
 
   if (budget.expected) {

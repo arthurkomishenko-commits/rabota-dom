@@ -48,10 +48,14 @@ const preloadFont =
 
     {/*
       Каскад темы: localStorage → prefers-color-scheme → light.
-      Строго ДО стилей и без внешнего файла, иначе будет FOUC (риск манифеста 01).
+      Плюс режимы панели доступности — ОДНИМ проходом, до стилей и без внешнего
+      файла. Два отдельных скрипта дали бы два кадра перерисовки; здесь и тема,
+      и режимы встают до первой отрисовки (бриф §2, §15).
     */}
     <script is:inline>
       (function () {
+        var root = document.documentElement;
+
         var theme = 'light';
         try {
           var stored = localStorage.getItem('theme');
@@ -63,7 +67,16 @@ const preloadFont =
         } catch (e) {
           /* приватный режим — остаётся светлая */
         }
-        document.documentElement.dataset.theme = theme;
+        root.dataset.theme = theme;
+
+        try {
+          var a11y = JSON.parse(localStorage.getItem('a11y') || '{}');
+          for (var key in a11y) {
+            if (a11y[key]) root.setAttribute('data-a11y-' + key, a11y[key]);
+          }
+        } catch (e) {
+          /* настроек нет или они испорчены — идём с обычными */
+        }
       })();
     </script>
 

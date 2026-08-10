@@ -11,15 +11,13 @@
 import Specimen from '../Specimen.astro';
 import MaterialTag from '../../components/MaterialTag.astro';
 import WorkCard from '../../components/WorkCard.astro';
-import photo from '../demo/pergola-aluminium.jpg?url';
+import photoImage from '../demo/pergola-aluminium.jpg';
 import { getDictionary } from '../../data/dictionary';
 
 const units = getDictionary('ru').units;
 
 const PHOTO = {
-  src: photo,
-  width: 1600,
-  height: 1200,
+  image: photoImage,
   alt: 'Алюминиевая пергола с ламелями над мощёной площадкой во дворе',
 };
 ---

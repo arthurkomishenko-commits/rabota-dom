@@ -1,5 +1,7 @@
 ---
 import PageLayout from '../layouts/PageLayout.astro';
+import { ROUTES , WHATSAPP_URL, PHONE_HREF } from '../config/site';
+import { getRelativeLocaleUrl } from 'astro:i18n';
 import { getDictionary } from '../data/dictionary';
 
 const locale = 'he' as const;
@@ -14,6 +16,12 @@ const principles = [t.principle1, t.principle2, t.principle3];
   locale={locale}
   nav={dict.nav}
   theme={dict.theme}
+  a11y={dict.a11y}
+  contact={dict.contact}
+  whatsappUrl={WHATSAPP_URL}
+  phoneHref={PHONE_HREF}
+  contactHref={getRelativeLocaleUrl(locale, ROUTES.contact)}
+  declarationHref={getRelativeLocaleUrl(locale, ROUTES.accessibility)}
   title={`${t.title} — Rabota Dom`}
   description={t.lead}
   current="about"
