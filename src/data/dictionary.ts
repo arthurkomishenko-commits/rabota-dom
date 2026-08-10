@@ -231,6 +231,16 @@ export type Dictionary = {
     askInstead: string;
   };
 
+  /** Карта работ (F6). Пока точек мало — страница скрыта из навигации. */
+  map: {
+    title: string;
+    intro: string;
+    notEnough: string;
+    notEnoughBody: string;
+    openWork: string;
+    privacyNote: string;
+  };
+
   /** Страница 404. */
   notFound: { title: string; body: string; toHome: string };
   scaffold: {
@@ -453,6 +463,14 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       calibratingBody: 'המספרים עדיין לא אושרו על ידי האומן, ולכן איננו מציגים אותם. להראות מחיר לא מאומת זה גרוע יותר מלא להראות כלום.',
       askInstead: 'כתבו בוואטסאפ עם מידות ותמונה — נאמר טווח מיד.',
     },
+    map: {
+      title: 'מפת העבודות',
+      intro: 'לראות מה נבנה קרוב אליכם. לוחצים על סימן — נפתח כרטיס העבודה.',
+      notEnough: 'המפה עדיין לא נפתחה',
+      notEnoughBody: 'צריך לפחות שש עבודות עם מיקום כדי שהמפה תהיה שימושית. עד אז אפשר לראות הכול ברשימת העבודות.',
+      openWork: 'פתיחת העבודה',
+      privacyNote: 'הסימנים מוצגים ליד העבודה, לא על בית הלקוח: הקואורדינטות מעוגלות ומוזזות בכוונה.',
+    },
   },
   ru: {
     units: { m: 'м', m2: 'м²', lm: 'пог. м', mm: 'мм', pcs: 'шт', days: 'дней' },
@@ -661,6 +679,14 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       calibratingBody: 'Цифры ещё не подтверждены мастером, поэтому мы их не показываем. Показать неподтверждённую цену хуже, чем не показать никакой.',
       askInstead: 'Напишите в WhatsApp размеры и фото места — назовём диапазон сразу.',
     },
+    map: {
+      title: 'Карта работ',
+      intro: 'Посмотреть, что построено рядом с вами. Нажмите на метку — откроется карточка работы.',
+      notEnough: 'Карта пока не открыта',
+      notEnoughBody: 'Чтобы карта была полезной, нужно хотя бы шесть работ с координатами. До тех пор всё видно в списке работ.',
+      openWork: 'Открыть работу',
+      privacyNote: 'Метки стоят рядом с объектом, а не на доме клиента: координаты намеренно огрублены и смещены.',
+    },
   },
   en: {
     units: { m: 'm', m2: 'm²', lm: 'lm', mm: 'mm', pcs: 'pcs', days: 'days' },
@@ -868,6 +894,14 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       calibrating: 'The calculator is being calibrated',
       calibratingBody: 'The numbers are not confirmed by the master yet, so we do not show them. Showing an unconfirmed price is worse than showing none.',
       askInstead: 'Send sizes and a photo on WhatsApp — we will name a range right away.',
+    },
+    map: {
+      title: 'Map of the work',
+      intro: 'See what has been built near you. Click a marker to open the project.',
+      notEnough: 'The map is not open yet',
+      notEnoughBody: 'The map becomes useful from about six located projects. Until then everything is visible in the list.',
+      openWork: 'Open the project',
+      privacyNote: 'Markers sit near the site, not on the client’s house: coordinates are deliberately rounded and shifted.',
     },
   },
 };

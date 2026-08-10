@@ -1,0 +1,107 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import WorksMap from '../components/WorksMap.astro';
+import { getDictionary } from '../data/dictionary';
+import { getWorks } from '../data/works';
+import { mapIsPublic } from '../lib/geo';
+import { ROUTES, WHATSAPP_URL, PHONE_HREF } from '../config/site';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+const locale = 'he' as const;
+const dict = getDictionary(locale);
+const t = dict.map;
+const works = await getWorks(locale);
+
+/**
+ * Гейт брифа §5: меньше шести точек — карта не открывается, и ссылки на неё
+ * нет в навигации. Страница при этом существует и честно объясняет, почему
+ * карты пока нет, вместо пустого полотна с одной меткой.
+ */
+const open = mapIsPublic(works.length);
+const workHref = (slug: string) => getRelativeLocaleUrl(locale, `${ROUTES.portfolio}${slug}/`);
+---
+
+<PageLayout
+  locale={locale}
+  nav={dict.nav}
+  theme={dict.theme}
+  a11y={dict.a11y}
+  contact={dict.contact}
+  whatsappUrl={WHATSAPP_URL}
+  phoneHref={PHONE_HREF}
+  contactHref={getRelativeLocaleUrl(locale, ROUTES.contact)}
+  declarationHref={getRelativeLocaleUrl(locale, ROUTES.accessibility)}
+  title={`${t.title} — Rabota Dom`}
+  description={t.intro}
+>
+  <article class="map-page">
+    <h1>{t.title}</h1>
+
+    {
+      open ? (
+        <>
+          <p class="map-page__intro">{t.intro}</p>
+          <WorksMap works={works} dict={dict} workHref={workHref} />
+        </>
+      ) : (
+        <div class="map-page__notice">
+          <h2>{t.notEnough}</h2>
+          <p>{t.notEnoughBody}</p>
+          <p>
+            <a href={getRelativeLocaleUrl(locale, ROUTES.portfolio)}>{dict.portfolio.title}</a>
+          </p>
+        </div>
+      )
+    }
+  </article>
+</PageLayout>
+
+<style>
+  .map-page {
+    margin-inline: auto;
+    max-inline-size: 72rem;
+    padding-inline: 1.5rem;
+    padding-block: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.875rem;
+    font-weight: 500;
+  }
+
+  .map-page__intro {
+    margin: 0;
+    max-inline-size: var(--measure);
+    color: var(--text-muted);
+  }
+
+  .map-page__notice {
+    border: 1px solid var(--border-metal);
+    border-inline-start: 3px solid var(--accent-wood);
+    border-radius: var(--radius-base);
+    background: var(--surface);
+    padding: 1.25rem;
+    max-inline-size: var(--measure);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .map-page__notice h2 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  .map-page__notice p {
+    margin: 0;
+  }
+
+  .map-page__notice a {
+    color: var(--accent-text);
+  }
+</style>

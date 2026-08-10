@@ -1,0 +1,172 @@
+---
+/**
+ * Карта работ (бриф §5).
+ *
+ * Вход: точки, словарь, адреса. Выход: секция с картой.
+ * Кто использует: `/map` всех локалей.
+ *
+ * ПРИВАТНОСТЬ. Координаты приходят уже огрублёнными (схема не примет больше
+ * трёх знаков) и здесь дополнительно смещаются на 50–100 м. Смещение
+ * детерминировано: случайное при каждой загрузке позволило бы усреднить
+ * настоящую точку по нескольким заходам.
+ *
+ * ЗАГРУЗКА ПО ТРЕБОВАНИЮ. Leaflet и тайлы подтягиваются только когда карта
+ * реально попала в вьюпорт: на странице без прокрутки до карты пользователь
+ * не платит за неё ничем. Без JS остаётся список работ ссылками — то есть
+ * содержимое карты доступно и без карты.
+ */
+import { jitter } from '../lib/geo';
+import type { Dictionary } from '../data/dictionary';
+import type { WorkEntry } from '../data/works';
+
+interface Props {
+  works: WorkEntry[];
+  dict: Dictionary;
+  workHref: (slug: string) => string;
+}
+
+const { works, dict, workHref } = Astro.props;
+const t = dict.map;
+
+const points = works.map((work) => {
+  const shifted = jitter(work.data.coords, work.data.slug);
+  return {
+    slug: work.data.slug,
+    title: work.data.title,
+    city: work.data.city,
+    material: dict.materials[work.data.material],
+    href: workHref(work.data.slug),
+    image: work.data.photos[0]!.src.src,
+    alt: work.data.photos[0]!.alt,
+    lat: shifted.lat,
+    lng: shifted.lng,
+  };
+});
+---
+
+<section class="map-section">
+  <p class="map-note">{t.privacyNote}</p>
+
+  <div class="map" data-map data-points={JSON.stringify(points)} data-open-label={t.openWork}>
+    {/* Без JS карта не появится, но содержимое останется доступным списком. */}
+    <noscript>
+      <ul class="map-fallback">
+        {points.map((point) => (
+          <li>
+            <a href={point.href}>
+              {point.title} — {point.city}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </noscript>
+  </div>
+</section>
+
+<script>
+  const container = document.querySelector<HTMLElement>('[data-map]');
+
+  if (container) {
+    let loaded = false;
+
+    const load = async () => {
+      if (loaded) return;
+      loaded = true;
+
+      const L = (await import('leaflet')).default;
+      await import('leaflet/dist/leaflet.css');
+
+      const points = JSON.parse(container.dataset.points ?? '[]');
+      const openLabel = container.dataset.openLabel ?? '';
+      if (points.length === 0) return;
+
+      const map = L.map(container, { scrollWheelZoom: false }).setView(
+        [
+          points.reduce((sum: number, p: { lat: number }) => sum + p.lat, 0) / points.length,
+          points.reduce((sum: number, p: { lng: number }) => sum + p.lng, 0) / points.length,
+        ],
+        12,
+      );
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 18,
+      }).addTo(map);
+
+      for (const point of points) {
+        // Маркер — круглое фото объекта, а не булавка: так карта сразу
+        // показывает, что именно построено в этом месте.
+        const icon = L.divIcon({
+          className: 'work-marker',
+          html: `<img src="${point.image}" alt="" width="44" height="44" loading="lazy">`,
+          iconSize: [44, 44],
+          iconAnchor: [22, 22],
+        });
+
+        L.marker([point.lat, point.lng], { icon, alt: point.title })
+          .addTo(map)
+          .bindPopup(
+            `<strong>${point.title}</strong><br>${point.city} · ${point.material}<br>` +
+              `<a href="${point.href}">${openLabel}</a>`,
+          );
+      }
+    };
+
+    // Карта грузится, только когда её действительно видно.
+    new IntersectionObserver(
+      (entries, observer) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            load();
+            observer.disconnect();
+          }
+        }
+      },
+      { rootMargin: '200px' },
+    ).observe(container);
+  }
+</script>
+
+<style>
+  .map-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .map-note {
+    margin: 0;
+    max-inline-size: var(--measure);
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+
+  .map {
+    inline-size: 100%;
+    block-size: 60dvh;
+    min-block-size: 320px;
+    border: 1px solid var(--border-metal);
+    border-radius: var(--radius-base);
+    background: var(--surface);
+  }
+
+  .map-fallback {
+    list-style: none;
+    margin: 0;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .map-fallback a {
+    color: var(--accent-text);
+  }
+
+  :global(.work-marker img) {
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--surface);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+  }
+</style>
