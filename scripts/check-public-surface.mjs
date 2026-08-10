@@ -60,6 +60,51 @@ function fixtureSlugs() {
  * новую страницу F3. Проверяем то, что реально лежит в dist, а не то,
  * что помнил автор списка (урок BUG-0006: полнота набора проверяется явно).
  */
+/**
+ * OG-карточки рисует браузер (DEC-0019) и они КОММИТЯТСЯ, а не создаются
+ * каждой сборкой: на раннере CI браузера нет, и делать его обязательным ради
+ * картинок, которые меняются раз в месяц, — плохой обмен.
+ *
+ * Но «коммитятся» без проверки означает «однажды забудут». Здесь сверяется
+ * полнота: у каждой работы обязана быть карточка на каждом языке. Забыли
+ * `npm run og` после новой работы — сборка красная, а не молча с пустым
+ * превью в мессенджере (кодекс §6: полнота проверяется явно).
+ */
+function checkOgCards() {
+  const worksDir = join(ROOT, 'content/works');
+  const ogDir = join(ROOT, 'public/og');
+  const missing = [];
+
+  let folders = [];
+  try {
+    folders = readdirSync(worksDir).filter((name) => statSync(join(worksDir, name)).isDirectory());
+  } catch {
+    return missing;
+  }
+
+  for (const folder of folders) {
+    for (const locale of ['he', 'ru', 'en']) {
+      const entry = join(worksDir, folder, `${locale}.mdx`);
+      if (!existsSync(entry)) continue;
+
+      const slug = readFileSync(entry, 'utf8').match(/^slug:\s*(\S+)\s*$/m)?.[1];
+      if (!slug) continue;
+
+      if (!existsSync(join(ogDir, `${slug}-${locale}.png`))) {
+        missing.push(`нет OG-карточки og/${slug}-${locale}.png — запустите npm run og`);
+      }
+    }
+  }
+
+  for (const locale of ['he', 'ru', 'en']) {
+    if (!existsSync(join(ogDir, `site-${locale}.png`))) {
+      missing.push(`нет общей OG-карточки og/site-${locale}.png — запустите npm run og`);
+    }
+  }
+
+  return missing;
+}
+
 const NOINDEX_EXEMPT = new Set(['404.html']);
 
 if (!existsSync(DIST)) {
@@ -122,6 +167,8 @@ for (const locale of ['', 'ru/', 'en/']) {
   }
 }
 if (pages.length === 0) problems.push('в dist нет ни одной страницы');
+
+problems.push(...checkOgCards());
 
 for (const page of pages) {
   if (NOINDEX_EXEMPT.has(page)) continue;

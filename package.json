@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "UI_SHOWCASE=1 astro dev",
-    "build": "npm run check:conventions && npm run check:markers && npm run check:budgets && npm run check:phrases && npm run check:content && npm run test:worker && npm run check:contrast && npm run og && astro build && npm run check:surface",
+    "build": "npm run check:conventions && npm run check:markers && npm run check:budgets && npm run check:phrases && npm run check:content && npm run test:worker && npm run check:contrast && astro build && npm run check:surface",
     "preview": "astro preview",
     "astro": "astro",
     "fonts:sync": "node scripts/sync-fonts.mjs",
@@ -19,7 +19,7 @@
     "check:markers": "node scripts/check-markers.mjs",
     "check:selftest": "node scripts/selftest-checks.mjs",
     "polish": "npm run build && node scripts/polish-pass.mjs",
-    "build:ui": "npm run check:conventions && npm run check:markers && npm run check:budgets && npm run check:phrases && npm run check:content && npm run test:worker && npm run check:contrast && UI_SHOWCASE=1 npm run og && astro build",
+    "build:ui": "npm run check:conventions && npm run check:markers && npm run check:budgets && npm run check:phrases && npm run check:content && npm run test:worker && npm run check:contrast && UI_SHOWCASE=1 astro build",
     "check:surface": "node scripts/check-public-surface.mjs",
     "shots:ui": "npm run build:ui && node scripts/shots-ui.mjs",
     "polish:ui": "npm run build:ui && node scripts/polish-pass.mjs",
