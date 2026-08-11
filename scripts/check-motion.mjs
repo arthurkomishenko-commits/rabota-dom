@@ -81,7 +81,40 @@ for (const engine of ENGINES) {
       await context.close();
     }
 
-    // ── 3. Уборка и чистая консоль ────────────────────────────────────────
+    // ── 3. С включённым движением содержимое НЕ спрятано ──────────────────
+    // Проверка, которой не хватало и которая пропустила BUG-0020: прежние
+    // два случая смотрели страницу без JS и с «меньше движения», то есть
+    // ровно там, где анимации нет. Обычный случай — скрипт работает,
+    // движение активно — не проверялся вовсе, и на живом сайте две секции
+    // висели пустыми до первой прокрутки.
+    {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      await page.goto(url(path), { waitUntil: 'networkidle' });
+      await page.evaluate(`new Promise((resolve) => {
+        if (window.__motion) return resolve(true);
+        document.addEventListener('motion:ready', () => resolve(true), { once: true });
+        setTimeout(() => resolve(false), 5000);
+      })`);
+      await page.waitForTimeout(400);
+
+      const hidden = await page.evaluate(`(() => {
+        const out = [];
+        for (const el of document.querySelectorAll('[data-reveal]')) {
+          if (Number(getComputedStyle(el).opacity) < 0.99) out.push(el.className || el.tagName);
+        }
+        return out;
+      })()`);
+
+      check(
+        hidden.length === 0,
+        `${label} с включённым движением ничего не спрятано до прокрутки`,
+        hidden.join(', '),
+      );
+      await context.close();
+    }
+
+    // ── 4. Уборка и чистая консоль ────────────────────────────────────────
     {
       const context = await browser.newContext();
       const page = await context.newPage();
