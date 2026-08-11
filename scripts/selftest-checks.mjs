@@ -139,25 +139,22 @@ try {
   }
 
   // Превышение бюджета скриптов на странице (бриф §10).
-  // Фикстура — настоящая страница в `dist` с встроенным скриптом, который
-  // не сжимается: случайные байты. Порог при этом НЕ трогается — проверяется
-  // именно тот, что защищает релиз.
+  // Фикстура САМОДОСТАТОЧНА: своя папка, а не настоящий `dist`. Первая версия
+  // клала пробную страницу в `dist` и падала в CI, где самотест идёт до сборки.
+  // Порог при этом НЕ трогается — проверяется тот, что защищает релиз.
   {
-    const dist = join(ROOT, 'dist');
-    if (existsSync(dist)) {
-      const probe = join(dist, '__selftest-budget.html');
-      // 512 КБ случайных байтов в base64: gzip такое почти не сжимает.
-      const noise = randomBytes(384 * 1024).toString('base64');
-      writeFileSync(probe, `<html><body><script>const x=${JSON.stringify(noise)};<\/script></body></html>`);
-      const { failed, output } = runCheck('scripts');
-      rmSync(probe, { force: true });
-      results.push([
-        failed && output.includes('__selftest-budget.html'),
-        'страница со скриптами тяжелее 120 КБ gz → ловится бюджетом',
-      ]);
-    } else {
-      results.push([false, 'бюджет скриптов: нет dist — фикстуру негде положить']);
-    }
+    const fake = join(ROOT, 'src/__selftest__/dist');
+    mkdirSync(fake, { recursive: true });
+    const probe = join(fake, '__selftest-budget.html');
+    // 512 КБ случайных байтов в base64: gzip такое почти не сжимает.
+    const noise = randomBytes(384 * 1024).toString('base64');
+    writeFileSync(probe, `<html><body><script>const x=${JSON.stringify(noise)};<\/script></body></html>`);
+    const { failed, output } = runCheck('scripts', 'src/__selftest__/dist');
+    rmSync(join(ROOT, 'src/__selftest__'), { recursive: true, force: true });
+    results.push([
+      failed && output.includes('__selftest-budget.html'),
+      'страница со скриптами тяжелее 120 КБ gz → ловится бюджетом',
+    ]);
   }
 
   // Строка словаря, которая никуда не выводится (BUG-0016).

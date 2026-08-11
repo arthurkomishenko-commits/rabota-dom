@@ -40,7 +40,14 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
  * в gzip; занижать оценку сжатием было бы подгонкой под порог.
  */
 function checkPageScripts() {
-  const dist = join(ROOT, 'dist');
+  /*
+   * Каталог можно передать аргументом. Это нужно самотесту: его фикстура
+   * не должна зависеть от того, собран ли проект. Первая версия клала
+   * пробную страницу в настоящий `dist` — и падала в CI, где самотест идёт
+   * ДО сборки. Проверка, работающая только при удачном порядке шагов,
+   * не проверка (кодекс §6).
+   */
+  const dist = process.argv[2] ? join(process.cwd(), process.argv[2]) : join(ROOT, 'dist');
   if (!existsSync(dist)) {
     console.log('· dist не собран — бюджет скриптов проверяется после сборки');
     return false;
