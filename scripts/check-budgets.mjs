@@ -6,9 +6,8 @@
  *     (DEC-0013). Нижняя граница — чтобы хватило на retina-карточку, верхняя —
  *     чтобы в git не оседал мёртвый вес, который всё равно ужмётся при сборке.
  */
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { gzipSync } from 'node:zlib';
-import { dirname, join, relative } from 'node:path';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
