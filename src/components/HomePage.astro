@@ -122,9 +122,16 @@ const principles = [dict.about.principle1, dict.about.principle2, dict.about.pri
       <div class="band__inner">
         <h2>{t.latestTitle}</h2>
         <div class="latest" data-reveal data-reveal-stagger>
-          {works.slice(0, 3).map((work, index) => (
+          {works.slice(0, 3).map((work) => (
             <WorkCard
-              priority={index === 0}
+              {/*
+                Приоритетной загрузки здесь НЕТ, и это осознанно. Блок работ
+                на главной — третий экран, то есть ниже сгиба. `fetchpriority`
+                на кадре, которого человек ещё не видит, отбирает канал
+                у того, что он видит: LCP-элементом главной является ТЕКСТ
+                (`li.trust__main`), а тексту нужен шрифт. На странице портфолио
+                первая карточка стоит вверху — там приоритет уместен и остаётся.
+              */}
               title={work.data.title}
               city={work.data.city}
               year={work.data.year}

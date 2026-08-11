@@ -41,6 +41,36 @@ export function reveal(api: StageApi, targets: Targets, options: { stagger?: boo
     return;
   }
 
+  /*
+   * ЭЛЕМЕНТЫ ПЕРВОГО ЭКРАНА НЕ АНИМИРУЮТСЯ. Это не оптимизация, а исправление
+   * дефекта: `gsap.from` выставляет `opacity: 0` сразу при построении сцены,
+   * и блок, уже видимый при загрузке, исчезает до выполнения скрипта.
+   *
+   * Найдено на числах, а не рассуждением. После пометки первой секции
+   * `data-reveal` LCP в CI вырос с 1995 до 2730 мс, а LCP-элементом оказался
+   * не кадр, а текст `li.trust__main` — при TBT 0–43 мс, то есть дело было
+   * не в весе GSAP. Появление скрывало содержимое, которое браузер уже нарисовал.
+   *
+   * Правило то же, что защищает страницу от отказа скрипта (BUG-0010,
+   * BUG-0017): первый экран не может зависеть от выполнения JavaScript.
+   * Ниже сгиба анимация уместна — там человек ещё не смотрел.
+   */
+  const list = typeof targets === 'string'
+    ? Array.from(document.querySelectorAll(targets))
+    : targets instanceof Element
+      ? [targets]
+      : Array.from(targets as ArrayLike<Element>);
+
+  const aboveFold = list.filter((el) => el.getBoundingClientRect().top < window.innerHeight);
+  if (aboveFold.length > 0) {
+    gsap.set(aboveFold, { opacity: 1, y: 0 });
+    if (aboveFold.length === list.length) return;
+  }
+
+  const animated = list.filter((el) => !aboveFold.includes(el));
+  if (animated.length === 0) return;
+  targets = animated;
+
   gsap.from(targets, {
     opacity: 0,
     y: RISE_DISTANCE,
