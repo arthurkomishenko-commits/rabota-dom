@@ -13,6 +13,7 @@
  */
 import { createServer } from 'node:http';
 import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createGzip } from 'node:zlib';
 import { dirname, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -45,7 +46,30 @@ export function serveDist(port = 0) {
       return;
     }
 
-    res.writeHead(200, { 'content-type': MIME[extname(file)] ?? 'application/octet-stream' });
+    /*
+     * СЖАТИЕ ОБЯЗАТЕЛЬНО, и это не удобство раздачи (BUG-0019).
+     *
+     * GitHub Pages отдаёт текстовые ресурсы сжатыми. Раздавая их сырыми,
+     * этот сервер заставлял Lighthouse мерить полезную нагрузку, которой
+     * не существует: модуль GSAP считался как 111 КБ вместо 43.5, то есть
+     * гейт производительности наказывал за трафик, которого у человека нет.
+     *
+     * Это исправление ТОЧНОСТИ измерения, а не послабление порога: порог
+     * 2000 мс не тронут, и заявлен он про реального человека на Pages.
+     * Мерить то, чего в жизни не происходит, — нарушение кодекса §6
+     * в обе стороны: и когда цифры хуже правды, и когда лучше.
+     */
+    const type = MIME[extname(file)] ?? 'application/octet-stream';
+    const compressible = /^(text\/|application\/(javascript|json|xml)|image\/svg)/.test(type);
+    const accepts = /\bgzip\b/.test(req.headers['accept-encoding'] ?? '');
+
+    if (compressible && accepts) {
+      res.writeHead(200, { 'content-type': type, 'content-encoding': 'gzip', vary: 'accept-encoding' });
+      createReadStream(file).pipe(createGzip()).pipe(res);
+      return;
+    }
+
+    res.writeHead(200, { 'content-type': type });
     createReadStream(file).pipe(res);
   });
 
