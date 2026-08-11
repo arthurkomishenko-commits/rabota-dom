@@ -41,10 +41,20 @@ const check = (ok, what, detail = '') => {
 
 const { server, url } = await serveDist();
 
-/** Тема ставится до первой отрисовки: иначе меряем светлую и записываем как тёмную. */
+/**
+ * Тема ставится так, как её ставит человек: записью в хранилище, которую
+ * читает бесфликерный скрипт страницы.
+ *
+ * Первая версия писала `documentElement.dataset.theme` прямо из init-скрипта —
+ * и роняла консоль на КАЖДОЙ странице во всех трёх движках: init-скрипт
+ * выполняется до появления документа, и `documentElement` там ещё `null`.
+ * Прогон дал 54 провала, из которых **все до одного** были дефектами стенда,
+ * а не сайта. Стенд, который ломает страницу и потом жалуется на ошибки
+ * в консоли, проверяет себя, а не проверяемое.
+ */
 async function openPage(browser, theme) {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
-  await context.addInitScript(`document.documentElement.dataset.theme = ${JSON.stringify(theme)};`);
+  await context.addInitScript(`try { localStorage.setItem('theme', ${JSON.stringify(theme)}); } catch {}`);
   return { context, page: await context.newPage() };
 }
 
@@ -61,7 +71,7 @@ for (const engine of ENGINES) {
   for (const locale of LOCALES) {
     for (const theme of THEMES) {
       CONTEXT = `[${engine.name} · ${locale.code} · ${theme}]`;
-      const home = `${url}${locale.prefix}`;
+      const home = url(locale.prefix);
 
       // ── Сценарий 1: человек ищет работу и доходит до связи ────────────────
       {
@@ -73,6 +83,18 @@ for (const engine of ENGINES) {
         check(
           (await page.locator('html').getAttribute('dir')) === locale.dir,
           'направление документа соответствует языку',
+        );
+
+        /*
+         * Тема ПРОВЕРЯЕТСЯ, а не предполагается. Иначе весь разговор про
+         * «две темы» держится на вере в то, что запись в хранилище сработала:
+         * промахнись я ключом — и прогон дважды измерил бы светлую,
+         * отчитавшись за обе (кодекс §6).
+         */
+        check(
+          (await page.locator('html').getAttribute('data-theme')) === theme,
+          'запрошенная тема действительно применена',
+          `ожидалась ${theme}`,
         );
 
         const toPortfolio = page.locator('nav a[href*="portfolio"], nav a[href*="avodot"]').first();
@@ -143,12 +165,14 @@ for (const engine of ENGINES) {
         const opener = page.locator('[data-a11y-open], [aria-controls*="a11y"]').first();
         if ((await opener.count()) > 0) {
           await opener.click();
-          const toggles = page.locator('[data-a11y-panel] input[type="checkbox"]');
+          // Разметка панели: тумблеры — `data-a11y-toggle`, ступени — `data-a11y-step`.
+          const toggles = page.locator('[data-a11y-toggle]');
           const count = await toggles.count();
           for (let i = 0; i < count; i += 1) {
             await toggles.nth(i).check({ force: true }).catch(() => {});
           }
-          check(count > 0, 'панель доступности отдаёт режимы', `${count} шт.`);
+          const steps = await page.locator('[data-a11y-step]').count();
+          check(count + steps > 0, 'панель доступности отдаёт режимы', `${count} тумблеров, ${steps} ступеней`);
 
           const overflow = await page.evaluate(
             () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -164,7 +188,7 @@ for (const engine of ENGINES) {
       // ── Сценарий 4: фильтр без результатов объясняет себя ─────────────────
       {
         const { context, page } = await openPage(browser, theme);
-        await page.goto(`${url}${locale.prefix}portfolio/?type=canopy&material=metal`, {
+        await page.goto(url(`${locale.prefix}portfolio/?type=canopy&material=metal`), {
           waitUntil: 'networkidle',
         });
         const visible = await page.locator('[data-work]:visible').count();
