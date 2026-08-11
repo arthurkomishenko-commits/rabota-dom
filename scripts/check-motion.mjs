@@ -93,6 +93,18 @@ for (const engine of ENGINES) {
       await page.goto(url(path), { waitUntil: 'networkidle' });
 
       /*
+       * Движение грузится лениво (BUG-0019), поэтому его надо разбудить
+       * и ДОЖДАТЬСЯ — иначе проверка измерит страницу, на которой сцены
+       * ещё нет, и объявит уборку безупречной по факту отсутствия.
+       */
+      await page.evaluate(`new Promise((resolve) => {
+        if (window.__motion) return resolve(true);
+        document.addEventListener('motion:ready', () => resolve(true), { once: true });
+        window.dispatchEvent(new Event('scroll'));
+        setTimeout(() => resolve(false), 5000);
+      })`);
+
+      /*
        * Считаем триггеры ДО и ПОСЛЕ уборки. Одного «после» мало: ноль после
        * уборки на странице, где движения и не было, ничего не доказывает.
        */

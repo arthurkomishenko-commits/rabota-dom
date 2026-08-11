@@ -20,28 +20,63 @@
 ---
 
 <script>
-  import { createStage } from '../lib/motion/stage';
-  import { reveal } from '../lib/motion/primitives';
-
+  /*
+   * GSAP грузится ЛЕНИВО и это не оптимизация, а исправление BUG-0019.
+   *
+   * Модуль весит 43.5 КБ gz. На мобильной сети он скачивается одновременно
+   * со шрифтом — а LCP-элементом главной является ТЕКСТ, которому этот шрифт
+   * и нужен. В CI это стоило около полусекунды: 1940 → 2580 мс при пороге 2000,
+   * причём TBT оставался нулевым, то есть скрипт ничего не исполнял и не
+   * блокировал. Он просто занимал канал.
+   *
+   * Движение — усиление поверх готовой страницы. Значит оно обязано ждать,
+   * пока страница загрузится, а не соревноваться с ней за полосу. Загрузка
+   * начинается по первому из событий: простой браузера или первое движение
+   * человека (прокрутка, указатель, клавиша) — то есть ровно тогда, когда
+   * анимация может понадобиться.
+   */
   const targets = document.querySelectorAll<HTMLElement>('[data-reveal]');
 
   if (targets.length > 0) {
-    const stage = createStage(document.body, (api) => {
-      for (const element of targets) {
-        reveal(api, element, { stagger: element.hasAttribute('data-reveal-stagger') });
-      }
-    });
+    let started = false;
 
-    /*
-     * bfcache отдаёт страницу назад вместе с живыми таймлайнами, поэтому
-     * уборка вешается на `pagehide`, а не на `beforeunload`: второй в bfcache
-     * попросту не срабатывает, и триггеры продолжают дёргать элементы,
-     * которых уже нет.
-     */
-    window.addEventListener('pagehide', () => stage.destroy(), { once: true });
+    const start = async () => {
+      if (started) return;
+      started = true;
 
-    // Отладочный доступ для проверки «после уборки живых триггеров ноль».
-    // Утверждение об уборке обязано быть измеримым, а не декларативным.
-    (window as unknown as { __motion?: unknown }).__motion = stage;
+      const [{ createStage }, { reveal }] = await Promise.all([
+        import('../lib/motion/stage'),
+        import('../lib/motion/primitives'),
+      ]);
+
+      const stage = createStage(document.body, (api) => {
+        for (const element of targets) {
+          reveal(api, element, { stagger: element.hasAttribute('data-reveal-stagger') });
+        }
+      });
+
+      /*
+       * bfcache отдаёт страницу назад вместе с живыми таймлайнами, поэтому
+       * уборка на `pagehide`, а не на `beforeunload`: второй в bfcache
+       * попросту не срабатывает.
+       */
+      window.addEventListener('pagehide', () => stage.destroy(), { once: true });
+
+      // Доступ для проверки «после уборки живых триггеров ноль»:
+      // утверждение об уборке обязано быть измеримым, а не декларативным.
+      (window as unknown as { __motion?: unknown }).__motion = stage;
+      document.dispatchEvent(new CustomEvent('motion:ready'));
+    };
+
+    const onIdle = (window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => void;
+    }).requestIdleCallback;
+
+    for (const event of ['scroll', 'pointerdown', 'keydown'] as const) {
+      window.addEventListener(event, start, { once: true, passive: true });
+    }
+
+    if (onIdle) onIdle(() => start(), { timeout: 3000 });
+    else window.addEventListener('load', () => start(), { once: true });
   }
 </script>
