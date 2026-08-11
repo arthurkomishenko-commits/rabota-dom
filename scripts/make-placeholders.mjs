@@ -98,6 +98,24 @@ const node = frame(
   'УЗЕЛ · КРЕПЛЕНИЕ БАЛКИ К ОПОРЕ',
 );
 
+/** Пергола в процессе: опоры и балки выставлены, ламелей ещё нет. */
+const pergolaProcess = frame(
+  `
+  <g stroke="${LINE}" stroke-width="6" fill="none">
+    <rect x="300" y="300" width="1000" height="26"/>
+    <line x1="340" y1="326" x2="340" y2="900"/>
+    <line x1="1260" y1="326" x2="1260" y2="900"/>
+    <line x1="300" y1="900" x2="1300" y2="900" stroke-width="3"/>
+  </g>
+  <g stroke="${ACCENT}" stroke-width="3" stroke-dasharray="12 10">
+    ${[340, 1260].map((x) => `<line x1="${x - 70}" y1="900" x2="${x + 70}" y2="900"/>`).join('')}
+  </g>
+  <g font-family="Helvetica, Arial, sans-serif" fill="${ACCENT}">
+    <text x="620" y="980" font-size="30">опоры выведены по уровню</text>
+  </g>`,
+  'ПЕРГОЛА · ЭТАП КАРКАСА',
+);
+
 /** Забор в процессе: столбы и лаги выставлены, заполнения ещё нет. */
 const fenceProcess = frame(
   `
@@ -118,6 +136,7 @@ const fenceProcess = frame(
 
 const OUT = [
   ['pergola-scheme.jpg', pergola],
+  ['pergola-process-scheme.jpg', pergolaProcess],
   ['fence-scheme.jpg', fence],
   ['fence-process-scheme.jpg', fenceProcess],
   ['node-scheme.jpg', node],

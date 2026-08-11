@@ -17,16 +17,31 @@ import { Image } from 'astro:assets';
 import TechnicalValue from './TechnicalValue.astro';
 import MaterialTag from './MaterialTag.astro';
 import DemoBadge from './DemoBadge.astro';
+import WorkCard from './WorkCard.astro';
 import type { Dictionary } from '../data/dictionary';
 import type { WorkEntry } from '../data/works';
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
 
 interface Props {
   work: WorkEntry;
   dict: Dictionary;
   backHref: string;
+  /**
+   * Тело паспорта — текст, написанный под фронтматтером. Приходит компонентом
+   * из репозитория работ: `astro:content` знает только он.
+   * Необязателен: у записи без текста примечания просто нет (BUG-0016).
+   */
+  note?: AstroComponentFactory;
+  /**
+   * Другие работы — до трёх карточек внизу паспорта. Пусто — блока нет
+   * целиком: заголовок над пустотой хуже отсутствия блока.
+   */
+  others?: WorkEntry[];
+  /** Адрес паспорта по слагу. Маршруты знают страницы, не компонент. */
+  workHref?: (slug: string) => string;
 }
 
-const { work, dict, backHref } = Astro.props;
+const { work, dict, backHref, note: Note, others = [], workHref } = Astro.props;
 const t = dict.portfolio;
 const data = work.data;
 ---
@@ -41,10 +56,19 @@ const data = work.data;
     <p class="work__stamp">
       <span>{data.city}</span>
       <span aria-hidden="true">·</span>
-      <TechnicalValue value={data.year} unitLabels={dict.units} />
+      <TechnicalValue value={data.year} unitLabels={dict.units}
+              locale={dict.locale} />
     </p>
     {data.demo && <DemoBadge label={dict.demo.badge} />}
   </header>
+
+  {
+    Note && (
+      <aside class="work__note">
+        <Note />
+      </aside>
+    )
+  }
 
   <p class="work__summary">{data.summary}</p>
 
@@ -53,13 +77,15 @@ const data = work.data;
       data.metrics.map((metric) => (
         <div class="work__fact">
           <dt>{metric.label}</dt>
-          <dd><TechnicalValue value={metric.value} unitLabels={dict.units} /></dd>
+          <dd><TechnicalValue value={metric.value} unitLabels={dict.units}
+              locale={dict.locale} /></dd>
         </div>
       ))
     }
     <div class="work__fact">
       <dt>{t.duration}</dt>
-      <dd><TechnicalValue value={data.duration} unitLabels={dict.units} /></dd>
+      <dd><TechnicalValue value={data.duration} unitLabels={dict.units}
+              locale={dict.locale} /></dd>
     </div>
   </dl>
 
@@ -95,6 +121,7 @@ const data = work.data;
                 loading="lazy"
               />
             </a>
+            <span class="shots__role">{t.photoRoles[photo.role]}</span>
           </li>
         ))
       }
@@ -107,6 +134,32 @@ const data = work.data;
         <p>{data.review.text}</p>
         <footer>{data.review.name}</footer>
       </blockquote>
+    )
+  }
+
+  {
+    others.length > 0 && workHref && (
+      <section class="work__others">
+        <h2>{t.otherWorks}</h2>
+        <ul class="others">
+          {others.map((other) => (
+            <li>
+              <WorkCard
+                title={other.data.title}
+                city={other.data.city}
+                year={other.data.year}
+                unitLabels={dict.units}
+                locale={dict.locale}
+                material={dict.materials[other.data.material]}
+                demoLabel={other.data.demo ? dict.demo.badge : undefined}
+                href={workHref(other.data.slug)}
+                photo={{ image: other.data.photos[0]!.src, alt: other.data.photos[0]!.alt }}
+                metrics={other.data.metrics}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
     )
   }
 
@@ -224,6 +277,29 @@ const data = work.data;
     color: var(--text-muted);
   }
 
+  /*
+   * Примечание паспорта. Не выделено плашкой: плашка уже есть у демо-записи,
+   * а вторая рядом превращает предупреждение в шум. Здесь — тихая врезка
+   * с чертёжной линией вдоль края.
+   */
+  .work__note {
+    margin: 0;
+    max-inline-size: var(--measure);
+    border-inline-start: 2px solid var(--border-metal);
+    padding-inline-start: 0.875rem;
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+  }
+
+  .work__note :global(p) {
+    margin: 0;
+  }
+
+  .work__note :global(p + p) {
+    margin-block-start: 0.5rem;
+  }
+
   .work__summary {
     margin: 0;
     max-inline-size: var(--measure);
@@ -270,6 +346,20 @@ const data = work.data;
     gap: 0.75rem;
   }
 
+  /*
+   * Подпись роли кадра. Без неё «до» и «после» — просто два снимка подряд:
+   * смысл жил только в alt, то есть был доступен скринридеру и не был доступен
+   * глазам (BUG-0016).
+   */
+  .shots__role {
+    display: block;
+    margin-block-start: 0.375rem;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
   .shots__link {
     display: block;
     border: 1px solid var(--border-metal);
@@ -295,6 +385,24 @@ const data = work.data;
     margin-block-start: 0.5rem;
     color: var(--text-muted);
     font-size: 0.875rem;
+  }
+
+  .work__others {
+    border-block-start: 1px solid var(--border-metal);
+    padding-block-start: 1.75rem;
+  }
+
+  .work__others h2 {
+    margin-block: 0 1rem;
+  }
+
+  .others {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
   }
 
   .work__back a {

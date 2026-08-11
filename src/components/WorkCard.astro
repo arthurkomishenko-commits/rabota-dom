@@ -19,6 +19,7 @@ import MaterialTag from './MaterialTag.astro';
 import TechnicalValue from './TechnicalValue.astro';
 import DemoBadge from './DemoBadge.astro';
 import type { TechnicalValue as TechnicalValueData } from '../data/schemas/technical';
+import type { Locale } from '../config/site';
 import type { UnitLabels } from '../lib/technical';
 import type { ImageMetadata } from 'astro';
 
@@ -34,6 +35,8 @@ interface Props {
   year: TechnicalValueData;
   /** Подписи единиц приходят из словаря страницы — компонент не переводит. */
   unitLabels: UnitLabels;
+  /** Локаль страницы: от неё зависит форма слова при числе (BUG-0014). */
+  locale: Locale;
   /** Название материала на языке страницы. */
   material: string;
   /**
@@ -70,6 +73,7 @@ const {
   city,
   year,
   unitLabels,
+  locale,
   material,
   photo,
   metrics = [],
@@ -117,7 +121,7 @@ const Tag = href ? 'a' : 'div';
       <p class="card__stamp">
         <span>{city}</span>
         <span aria-hidden="true">·</span>
-        <TechnicalValue value={year} unitLabels={unitLabels} />
+        <TechnicalValue value={year} unitLabels={unitLabels} locale={locale} />
       </p>
 
       {
@@ -126,7 +130,7 @@ const Tag = href ? 'a' : 'div';
             {realMetrics.map((metric) => (
               <div class="card__metric">
                 <dt>{metric.label}</dt>
-                <dd><TechnicalValue value={metric.value} unitLabels={unitLabels} /></dd>
+                <dd><TechnicalValue value={metric.value} unitLabels={unitLabels} locale={locale} /></dd>
               </div>
             ))}
           </dl>

@@ -33,7 +33,8 @@ const t = dict.contact;
     <div class="contact__channels">
       <Button href={WHATSAPP_URL} rel="noopener" target="_blank">{t.whatsapp}</Button>
       <Button variant="text" href={PHONE_HREF}>
-        {t.call}: <TechnicalValue value={{ kind: 'plain', text: PHONE_DISPLAY }} unitLabels={dict.units} />
+        {t.call}: <TechnicalValue value={{ kind: 'plain', text: PHONE_DISPLAY }} unitLabels={dict.units}
+              locale={dict.locale} />
       </Button>
     </div>
 

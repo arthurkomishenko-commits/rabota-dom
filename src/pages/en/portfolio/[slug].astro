@@ -3,6 +3,7 @@ import PageLayout from '../../../layouts/PageLayout.astro';
 import StructuredData from '../../../components/StructuredData.astro';
 import { creativeWork } from '../../../lib/structured-data';
 import WorkDetail from '../../../components/WorkDetail.astro';
+import { renderWork } from '../../../data/works';
 import { getDictionary } from '../../../data/dictionary';
 import { ROUTES , WHATSAPP_URL, PHONE_HREF } from '../../../config/site';
 import { getRelativeLocaleUrl } from 'astro:i18n';
@@ -10,12 +11,15 @@ import { getRelativeLocaleUrl } from 'astro:i18n';
 export async function getStaticPaths() {
   const { getWorks: load } = await import('../../../data/works');
   const works = await load('en');
-  return works.map((work) => ({ params: { slug: work.data.slug }, props: { work } }));
+  return works.map((work) => ({
+    params: { slug: work.data.slug },
+    props: { work, others: works.filter((other) => other.data.slug !== work.data.slug).slice(0, 3) },
+  }));
 }
 
 const locale = 'en' as const;
 const dict = getDictionary(locale);
-const { work } = Astro.props;
+const { work, others } = Astro.props;
 const schema = creativeWork({
   url: new URL(Astro.url.pathname, Astro.site).href,
   name: work.data.title,
@@ -26,6 +30,8 @@ const schema = creativeWork({
   material: dict.materials[work.data.material],
   creatorName: 'Rabota Dom',
 });
+
+const { Content: note } = await renderWork(work);
 
 const backHref = getRelativeLocaleUrl(locale, ROUTES.portfolio);
 ---
@@ -46,5 +52,12 @@ const backHref = getRelativeLocaleUrl(locale, ROUTES.portfolio);
   ogCard={`${work.data.slug}-${locale}`}
 >
   <StructuredData data={schema} />
-  <WorkDetail work={work} dict={dict} backHref={backHref} />
+  <WorkDetail
+    work={work}
+    dict={dict}
+    backHref={backHref}
+    note={note}
+    others={others}
+    workHref={(slug) => getRelativeLocaleUrl(locale, `${ROUTES.portfolio}/${slug}`)}
+  />
 </PageLayout>

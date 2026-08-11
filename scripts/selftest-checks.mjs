@@ -10,7 +10,8 @@
  * увидит) и удаляются всегда, даже при падении.
  */
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -58,13 +59,15 @@ const SCRIPTS = {
   conventions: 'check-conventions.mjs',
   phrases: 'check-phrases.mjs',
   budgets: 'check-budgets.mjs',
+  scripts: 'check-scripts.mjs',
   content: 'check-content.mjs',
+  deadText: 'check-dead-text.mjs',
 };
 
-function runCheck(which) {
+function runCheck(which, ...args) {
   const script = SCRIPTS[which] ?? SCRIPTS.conventions;
   try {
-    execFileSync('node', [join(ROOT, 'scripts', script)], { cwd: ROOT, encoding: 'utf8' });
+    execFileSync('node', [join(ROOT, 'scripts', script), ...args], { cwd: ROOT, encoding: 'utf8' });
     return { failed: false, output: '' };
   } catch (error) {
     return { failed: true, output: `${error.stdout ?? ''}${error.stderr ?? ''}` };
@@ -132,6 +135,47 @@ try {
     results.push([
       failed && output.includes('нет версии'),
       'у работы пропала языковая версия → ловится',
+    ]);
+  }
+
+  // Превышение бюджета скриптов на странице (бриф §10).
+  // Фикстура — настоящая страница в `dist` с встроенным скриптом, который
+  // не сжимается: случайные байты. Порог при этом НЕ трогается — проверяется
+  // именно тот, что защищает релиз.
+  {
+    const dist = join(ROOT, 'dist');
+    if (existsSync(dist)) {
+      const probe = join(dist, '__selftest-budget.html');
+      // 512 КБ случайных байтов в base64: gzip такое почти не сжимает.
+      const noise = randomBytes(384 * 1024).toString('base64');
+      writeFileSync(probe, `<html><body><script>const x=${JSON.stringify(noise)};<\/script></body></html>`);
+      const { failed, output } = runCheck('scripts');
+      rmSync(probe, { force: true });
+      results.push([
+        failed && output.includes('__selftest-budget.html'),
+        'страница со скриптами тяжелее 120 КБ gz → ловится бюджетом',
+      ]);
+    } else {
+      results.push([false, 'бюджет скриптов: нет dist — фикстуру негде положить']);
+    }
+  }
+
+  // Строка словаря, которая никуда не выводится (BUG-0016).
+  // Фикстура — отдельный файл словаря: ключи живут в одном конкретном файле,
+  // и подсунуть их иначе, не трогая настоящий, нельзя.
+  {
+    const dir = join(ROOT, 'src/__selftest__');
+    mkdirSync(dir, { recursive: true });
+    const probe = join(dir, 'dictionary-fixture.ts');
+    writeFileSync(
+      probe,
+      'export type Dictionary = {\n  portfolio: {\n    title: string;\n    neverRenderedAnywhere: string;\n  };\n};\n\nconst DICTIONARIES = {};\n',
+    );
+    const { failed, output } = runCheck('deadText', 'src/__selftest__/dictionary-fixture.ts');
+    rmSync(dir, { recursive: true, force: true });
+    results.push([
+      failed && output.includes('neverRenderedAnywhere'),
+      'строка словаря не выводится никуда → ловится',
     ]);
   }
 

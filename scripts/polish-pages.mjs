@@ -15,9 +15,15 @@
  *  · страница читаема без JS;
  *  · включённые режимы доступности не ломают раскладку.
  *
- * Запуск: npm run polish:pages
+ * Запуск: npm run polish:pages            — все три движка
+ *         npm run polish:pages -- webkit  — один движок
+ *
+ * ТРИ ДВИЖКА, А НЕ ОДИН. Основная аудитория — израильский мобайл, то есть
+ * в большой части iPhone, а это WebKit. Проверять RTL, `dvh`, `<dialog>`
+ * и `clip-path` только в Chromium значит не проверять их для тех, ради кого
+ * сайт делается.
  */
-import { chromium } from 'playwright';
+import { ENGINES } from './lib/engines.mjs';
 import { readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -42,9 +48,13 @@ function pages() {
 const results = [];
 const problems = [];
 
+let ENGINE = 'chromium';
+
 const check = (ok, page, text, detail = '') => {
   results.push(ok);
-  if (!ok) problems.push(`${page} · ${text}${detail ? ` — ${detail}` : ''}`);
+  // Движок в тексте находки обязателен: «не работает» и «не работает
+  // в WebKit» — это разные задачи с разной причиной.
+  if (!ok) problems.push(`[${ENGINE}] ${page} · ${text}${detail ? ` — ${detail}` : ''}`);
 };
 
 const ACCESSIBLE_NAME = `(el) => {
@@ -67,7 +77,49 @@ const ACCESSIBLE_NAME = `(el) => {
 }`;
 
 const { server, url } = await serveDist();
-const browser = await chromium.launch();
+
+const requested = process.argv[2];
+const engines = requested ? ENGINES.filter((e) => e.name === requested) : ENGINES;
+if (engines.length === 0) {
+  console.error(`Неизвестный движок: ${requested}. Доступны: ${ENGINES.map((e) => e.name).join(', ')}`);
+  process.exit(1);
+}
+
+for (const engine of engines) {
+const browser = await engine.launcher.launch();
+ENGINE = engine.name;
+
+
+/**
+ * Навигация с одной повторной попыткой.
+ *
+ * ЗАЧЕМ. Прогон по трём движкам — это 132 открытия страниц и около сорока
+ * минут работы. Один сорвавшийся `networkidle` под нагрузкой машины ронял
+ * весь аудит целиком, и сорок минут уходили впустую.
+ *
+ * ЭТО НЕ ОСЛАБЛЕНИЕ ГЕЙТА (кодекс §2). Провалившийся повтор не прячется:
+ * он становится обычной находкой с именем движка и страницы, то есть прогон
+ * доходит до конца и всё равно падает с ненулевым кодом. Меняется только одно:
+ * вместо аварийного завершения на 26-й странице мы получаем полный отчёт.
+ * Сам факт повтора печатается — молчаливых ретраев здесь нет.
+ */
+async function goto(tab, address, page, what, waitUntil = 'networkidle') {
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    try {
+      // Условие ожидания приходит параметром: прогон без JS ждал `load`,
+      // и подменять это на `networkidle` значило бы измерять другое.
+      await tab.goto(address, { waitUntil });
+      if (attempt > 1) console.log(`\n  ↻ ${ENGINE} · ${page} · ${what}: удалось со второй попытки`);
+      return true;
+    } catch (error) {
+      if (attempt === 2) {
+        check(false, page, `страница открывается (${what})`, String(error).split('\n')[0]);
+        return false;
+      }
+    }
+  }
+  return false;
+}
 
 try {
   const list = pages();
@@ -87,7 +139,11 @@ try {
     const tab = await context.newPage();
     const errors = [];
     tab.on('pageerror', (error) => errors.push(error.message));
-    await tab.goto(address, { waitUntil: 'networkidle' });
+    if (!(await goto(tab, address, page, 'обычный просмотр'))) {
+      await context.close();
+      process.stdout.write('.');
+      continue;
+    }
 
     const audit = await tab.evaluate(`(() => {
       const accessibleName = ${ACCESSIBLE_NAME};
@@ -130,7 +186,7 @@ try {
     // ── 320px ───────────────────────────────────────────────────────────
     const narrow = await browser.newContext({ viewport: { width: 320, height: 640 } });
     const narrowTab = await narrow.newPage();
-    await narrowTab.goto(address, { waitUntil: 'networkidle' });
+    await goto(narrowTab, address, page, 'узкий вьюпорт');
     const overflow = await narrowTab.evaluate(() => ({
       doc: document.documentElement.scrollWidth,
       client: document.documentElement.clientWidth,
@@ -146,7 +202,7 @@ try {
     // ── Без JS ──────────────────────────────────────────────────────────
     const noJs = await browser.newContext({ javaScriptEnabled: false });
     const noJsTab = await noJs.newPage();
-    await noJsTab.goto(address, { waitUntil: 'load' });
+    await goto(noJsTab, address, page, 'без JS', 'load');
     /**
      * «Читаема без JS» — это заголовок, текст и способ уйти дальше.
      * Порог объёма для 404 отдельный: там короткий текст — не недоделка,
@@ -173,7 +229,7 @@ try {
         JSON.stringify({ font: '3', leading: '2', tracking: '2', contrast: 'on', underline: 'on' }),
       ),
     );
-    await a11yTab.goto(address, { waitUntil: 'networkidle' });
+    await goto(a11yTab, address, page, 'режимы доступности');
     const a11yOverflow = await a11yTab.evaluate(() => ({
       doc: document.documentElement.scrollWidth,
       client: document.documentElement.clientWidth,
@@ -197,8 +253,10 @@ try {
   }
 } finally {
   await browser.close();
-  server.close();
 }
+}
+
+server.close();
 
 const failed = problems.length;
 console.log(`\n\nПроверок: ${results.length}, провалено: ${failed}`);

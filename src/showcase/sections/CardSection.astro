@@ -11,10 +11,12 @@
 import Specimen from '../Specimen.astro';
 import MaterialTag from '../../components/MaterialTag.astro';
 import WorkCard from '../../components/WorkCard.astro';
-import photoImage from '../demo/pergola-aluminium.jpg';
+// Витрина показывает НАШУ схему, а не работу клиента: BUG-0013, DEC-0022.
+import photoImage from '../demo/pergola-scheme.jpg';
 import { getDictionary } from '../../data/dictionary';
 
-const units = getDictionary('ru').units;
+const demoDict = getDictionary('ru');
+const units = demoDict.units;
 
 const PHOTO = {
   image: photoImage,
@@ -40,6 +42,7 @@ const PHOTO = {
       city="Ноф-ха-Галиль"
       year={{ kind: 'year', value: 2024 }}
       unitLabels={units}
+      locale={demoDict.locale}
       material="Алюминий"
       photo={PHOTO}
       href="#work"
@@ -53,6 +56,7 @@ const PHOTO = {
       city="Мигдаль-ха-Эмек"
       year={{ kind: 'year', value: 2023 }}
       unitLabels={units}
+      locale={demoDict.locale}
       material="Комбо"
       photo={PHOTO}
       metrics={[]}
@@ -62,6 +66,7 @@ const PHOTO = {
       city="Кирьят-Тивон"
       year={{ kind: 'year', value: 2025 }}
       unitLabels={units}
+      locale={demoDict.locale}
       material="Дерево"
       photo={PHOTO}
       metrics={[{ label: 'Длина', value: { kind: 'quantity', value: 24, unit: 'lm' } }]}

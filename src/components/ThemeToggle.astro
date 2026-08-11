@@ -13,14 +13,27 @@ interface Props {
 const { labelLight, labelDark } = Astro.props;
 ---
 
+<!--
+  Состояние по умолчанию задаётся РАЗМЕТКОЙ, а не работой скрипта — BUG-0010,
+  и здесь та же ошибка повторилась второй раз (BUG-0017). Пустая кнопка,
+  которую наполняет JS, приезжает к человеку без имени: до выполнения скрипта
+  у неё нет ни текста, ни `aria-label`, то есть скринридер объявляет «кнопка».
+  Плюс подстановка текста в пустой элемент двигает шапку.
+
+  По умолчанию считаем тему светлой: подпись показывает, КУДА переключит
+  нажатие, значит из светлой — в тёмную. Если каскад в `BaseLayout` разрешил
+  тему в тёмную, скрипт ниже поправит подпись сразу после разбора документа.
+-->
 <button
   type="button"
   class="theme-toggle"
   data-theme-toggle
   data-label-light={labelLight}
   data-label-dark={labelDark}
+  aria-label={labelDark}
+  aria-pressed="false"
 >
-  <span data-theme-toggle-text></span>
+  <span data-theme-toggle-text>{labelDark}</span>
 </button>
 
 <style>

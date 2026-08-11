@@ -16,17 +16,19 @@
  * Неймспейс `scaffold` удаляется в F3 вместе с технической страницей.
  */
 import type { Locale } from '../config/site';
+import type { UnitLabels } from '../lib/technical';
 
 export type Dictionary = {
-  /** Подписи единиц измерения. Живут в словаре: это текст, а не данные. */
-  units: {
-    m: string;
-    m2: string;
-    lm: string;
-    mm: string;
-    pcs: string;
-    days: string;
-  };
+  /**
+   * Локаль этого словаря. Нужна там, где текст зависит не только от строк,
+   * но и от правил языка — выбор формы слова при числе (BUG-0014).
+   */
+  locale: Locale;
+  /**
+   * Подписи единиц измерения. Живут в словаре: это текст, а не данные.
+   * Неизменяемая единица — строка; склоняемая — набор форм (BUG-0014).
+   */
+  units: UnitLabels;
   theme: {
     /** Подпись тумблера показывает, КУДА переключит нажатие. */
     toLight: string;
@@ -92,6 +94,11 @@ export type Dictionary = {
     reset: string;
     hardPart: string;
     photos: string;
+    /**
+     * Подписи ролей кадров. Нужны глазам: «до» и «после» без подписи —
+     * просто два снимка подряд, а alt читает только скринридер (BUG-0016).
+     */
+    photoRoles: { cover: string; general: string; process: string; before: string; after: string; node: string };
     openPhoto: string;
     closeLightbox: string;
     prevPhoto: string;
@@ -257,7 +264,16 @@ export type Dictionary = {
 
 const DICTIONARIES: Record<Locale, Dictionary> = {
   he: {
-    units: { m: 'מ׳', m2: 'מ״ר', lm: 'מ׳', mm: 'מ״מ', pcs: 'יח׳', days: 'ימים' },
+    locale: 'he',
+    units: {
+      m: 'מ׳',
+      m2: 'מ״ר',
+      lm: 'מ׳',
+      mm: 'מ״מ',
+      pcs: 'יח׳',
+      // ביום אחד, ביומיים — לעברית יש צורת זוגי, ולכן גם המפתח two.
+      days: { one: 'יום', two: 'יומיים', many: 'ימים', other: 'ימים' },
+    },
     theme: {
       toLight: 'מצב בהיר',
       toDark: 'מצב כהה',
@@ -278,6 +294,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       reset: 'איפוס סינון',
       hardPart: 'מה היה הכי מורכב',
       photos: 'תמונות',
+      photoRoles: { cover: 'כללי', general: 'מבט כללי', process: 'תוך כדי עבודה', before: 'לפני', after: 'אחרי', node: 'צומת' },
       openPhoto: 'פתיחת התמונה בגודל מלא',
       closeLightbox: 'סגירה',
       prevPhoto: 'התמונה הקודמת',
@@ -473,7 +490,15 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     },
   },
   ru: {
-    units: { m: 'м', m2: 'м²', lm: 'пог. м', mm: 'мм', pcs: 'шт', days: 'дней' },
+    locale: 'ru',
+    units: {
+      m: 'м',
+      m2: 'м²',
+      lm: 'пог. м',
+      mm: 'мм',
+      pcs: 'шт',
+      days: { one: 'день', few: 'дня', many: 'дней', other: 'дня' },
+    },
     theme: {
       toLight: 'Светлая тема',
       toDark: 'Тёмная тема',
@@ -494,6 +519,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       reset: 'Сбросить фильтр',
       hardPart: 'Что было самым сложным',
       photos: 'Фотографии',
+      photoRoles: { cover: 'Общий вид', general: 'Общий вид', process: 'В работе', before: 'До', after: 'После', node: 'Узел' },
       openPhoto: 'Открыть фото в полный размер',
       closeLightbox: 'Закрыть',
       prevPhoto: 'Предыдущее фото',
@@ -689,7 +715,15 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
     },
   },
   en: {
-    units: { m: 'm', m2: 'm²', lm: 'lm', mm: 'mm', pcs: 'pcs', days: 'days' },
+    locale: 'en',
+    units: {
+      m: 'm',
+      m2: 'm²',
+      lm: 'lm',
+      mm: 'mm',
+      pcs: { one: 'pc', other: 'pcs' },
+      days: { one: 'day', other: 'days' },
+    },
     theme: {
       toLight: 'Light theme',
       toDark: 'Dark theme',
@@ -710,6 +744,7 @@ const DICTIONARIES: Record<Locale, Dictionary> = {
       reset: 'Reset filter',
       hardPart: 'The hard part',
       photos: 'Photos',
+      photoRoles: { cover: 'Overall', general: 'Overall', process: 'In progress', before: 'Before', after: 'After', node: 'Joint' },
       openPhoto: 'Open the photo full size',
       closeLightbox: 'Close',
       prevPhoto: 'Previous photo',

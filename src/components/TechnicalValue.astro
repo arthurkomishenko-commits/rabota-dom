@@ -15,13 +15,16 @@
  */
 import { formatTechnical, type UnitLabels } from '../lib/technical';
 import type { TechnicalValue } from '../data/schemas/technical';
+import type { Locale } from '../config/site';
 
 interface Props {
   value: TechnicalValue;
   unitLabels: UnitLabels;
+  /** Нужна для выбора формы слова при числе: «1 день», «4 дня» (BUG-0014). */
+  locale: Locale;
 }
 
-const { value, unitLabels } = Astro.props;
+const { value, unitLabels, locale } = Astro.props;
 ---
 
-<bdi dir="ltr">{formatTechnical(value, unitLabels)}</bdi>
+<bdi dir="ltr">{formatTechnical(value, unitLabels, locale)}</bdi>

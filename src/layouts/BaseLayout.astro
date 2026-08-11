@@ -101,7 +101,14 @@ const preloadFont =
 
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
-    <link rel="canonical" href={canonical.href} />
+    {/*
+      Canonical только для страниц языковой матрицы. У 404 канонического
+      адреса не существует по определению: она отдаётся на любой запрос,
+      и объявлять «правильный» адрес значит указывать на несуществующую
+      страницу. У `/admin` он бессмыслен по той же причине. Найдено
+      проверкой целостности, BUG-0011.
+    */}
+    {localized && <link rel="canonical" href={canonical.href} />}
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Rabota Dom" />

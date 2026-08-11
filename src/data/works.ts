@@ -11,7 +11,7 @@
  * проверки схемы. Отсечение здесь, а не в вызывающем коде, — чтобы забыть
  * про фильтр было негде.
  */
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
 import type { Locale } from '../config/site';
 
 export type WorkEntry = CollectionEntry<'works'>;
@@ -32,4 +32,18 @@ export async function getWorks(locale: Locale): Promise<WorkEntry[]> {
 export async function getWork(locale: Locale, slug: string): Promise<WorkEntry | undefined> {
   const works = await getWorks(locale);
   return works.find((entry) => entry.data.slug === slug);
+}
+
+/**
+ * Тело паспорта — текст под фронтматтером — в виде компонента.
+ *
+ * Живёт здесь по той же причине, что и `getWorks`: `astro:content` знает
+ * только этот файл (ARCHITECTURE_PRINCIPLES §2).
+ *
+ * ПОЧЕМУ ЭТО ВООБЩЕ ПОЯВИЛОСЬ — BUG-0016. Тело писали с самой F2, и всё это
+ * время оно никуда не выводилось: страница брала только `data`. Пометка
+ * «демонстрационный паспорт, цифры выдуманы» физически не доходила до читателя.
+ */
+export async function renderWork(entry: WorkEntry) {
+  return render(entry);
 }

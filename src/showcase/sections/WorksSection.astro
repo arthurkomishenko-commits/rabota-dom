@@ -41,6 +41,7 @@ const shown = await Promise.all(
                 city={work.data.city}
                 year={work.data.year}
                 unitLabels={dict.units}
+              locale={dict.locale}
                 material={dict.materials[work.data.material]}
                 demoLabel={work.data.demo ? dict.demo.badge : undefined}
                 photo={{ image: work.data.photos[0]!.src, alt: work.data.photos[0]!.alt }}
